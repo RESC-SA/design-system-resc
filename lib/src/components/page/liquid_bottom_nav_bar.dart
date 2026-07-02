@@ -496,9 +496,14 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
               math.max(48.0, widget.height - resolvedPadding.vertical);
 
           final visibleCount = math.min(_maxItemDisplayed, widget.items.length);
+          final totalWidth =
+              math.max(0.0, maxWidth - _horizontalPadding(widget.padding));
           final cellSize = isVertical
               ? math.max(1.0, innerHeight / visibleCount)
-              : math.max(0.0, maxWidth / visibleCount);
+              : math.max(0.0, totalWidth / visibleCount);
+          final overflow = widget.items.length > _maxItemDisplayed;
+          final listViewPad = overflow ? cellSize / 2 : 0.0;
+          final itemInset = isVertical ? resolvedPadding.top : resolvedPadding.left;
 
           Widget navBar = ScrollConfiguration(
             behavior:
@@ -605,7 +610,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                                       dragWobble: _isDragging
                                           ? _dragWobbleController.value
                                           : 0,
-                                      horizontalInset: resolvedPadding.left,
+                                      horizontalInset: itemInset + listViewPad,
                                       primaryColor: style.liquidColor!,
                                       surfaceColor: style.containerColor!,
                                       blobBaseWidthFactor:
