@@ -90,6 +90,9 @@ class LiquidBottomNavBar extends StatefulWidget {
   final double dragWavePositionMultiplier;
   final bool showBorder;
   final bool canScroll;
+
+  /// Enables horizontal/vertical scrolling when items exceed [_LiquidBottomNavBarState._maxItemDisplayed].
+  final bool enableScroll;
   final Axis scrollDirection;
   final LiquidColorMode colorMode;
 
@@ -157,6 +160,7 @@ class LiquidBottomNavBar extends StatefulWidget {
     this.dragWavePositionMultiplier = 1.4,
     this.showBorder = true,
     this.canScroll = true,
+    this.enableScroll = true,
     this.scrollDirection = Axis.horizontal,
     this.colorMode = LiquidColorMode.gradient,
     this.onReorder,
@@ -495,15 +499,19 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
           final innerHeight =
               math.max(48.0, widget.height - resolvedPadding.vertical);
 
-          final visibleCount = math.min(_maxItemDisplayed, widget.items.length);
+          final visibleCount = widget.enableScroll
+              ? math.min(_maxItemDisplayed, widget.items.length)
+              : widget.items.length;
           final totalWidth =
               math.max(0.0, maxWidth - _horizontalPadding(widget.padding));
           final cellSize = isVertical
               ? math.max(1.0, innerHeight / visibleCount)
               : math.max(0.0, totalWidth / visibleCount);
-          final overflow = widget.items.length > _maxItemDisplayed;
+          final overflow =
+              widget.enableScroll && widget.items.length > _maxItemDisplayed;
           final listViewPad = overflow ? cellSize / 2 : 0.0;
-          final itemInset = isVertical ? resolvedPadding.top : resolvedPadding.left;
+          final itemInset =
+              isVertical ? resolvedPadding.top : resolvedPadding.left;
 
           Widget navBar = ScrollConfiguration(
             behavior:
@@ -594,63 +602,62 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                                         _wobbleController.value * math.pi * 4) *
                                     (1 - _wobbleController.value) *
                                     15.0;
-                                final scrollOffset = _scrollController.hasClients
-                                    ? _scrollController.offset
-                                    : 0.0;
+                                final scrollOffset =
+                                    _scrollController.hasClients
+                                        ? _scrollController.offset
+                                        : 0.0;
                                 final effectivePosition =
                                     _dragPosition - scrollOffset / cellSize;
-                                return Center(
-                                  child: CustomPaint(
-                                    painter: _IOSLiquidPainter(
-                                      position: effectivePosition,
-                                      itemWidth: cellSize,
-                                      velocity: _isDragging ? _velocity : 0,
-                                      expansion: _expansionController.value,
-                                      wobble: wobbleVal,
-                                      dragWobble: _isDragging
-                                          ? _dragWobbleController.value
-                                          : 0,
-                                      horizontalInset: itemInset + listViewPad,
-                                      primaryColor: style.liquidColor!,
-                                      surfaceColor: style.containerColor!,
-                                      blobBaseWidthFactor:
-                                          widget.blobBaseWidthFactor,
-                                      blobExpandedWidthFactor:
-                                          widget.blobExpandedWidthFactor,
-                                      blobBaseHeight: widget.blobBaseHeight,
-                                      blobExpandedHeight:
-                                          widget.blobExpandedHeight,
-                                      blobStretchMultiplier:
-                                          widget.blobStretchMultiplier,
-                                      blobMaxStretch: widget.blobMaxStretch,
-                                      blobWobbleInfluenceOnWidth:
-                                          _animatedBlobWobbleInfluenceOnWidth,
-                                      blobWobbleInfluenceOnHeight:
-                                          _animatedBlobWobbleInfluenceOnHeight,
-                                      shadowOffset: _animatedShadowOffset,
-                                      shadowAlpha: _animatedShadowAlpha,
-                                      shadowBlurSigma: _animatedShadowBlurSigma,
-                                      borderAlpha: _animatedBorderAlpha,
-                                      borderWidth: _animatedBorderWidth,
-                                      gradientSurfaceAlpha:
-                                          _animatedGradientSurfaceAlpha,
-                                      gradientPrimaryAlpha1:
-                                          _animatedGradientPrimaryAlpha1,
-                                      gradientPrimaryAlpha2:
-                                          _animatedGradientPrimaryAlpha2,
-                                      dragWaveHeightMultiplier:
-                                          _animatedDragWaveHeightMultiplier,
-                                      dragWavePositionMultiplier:
-                                          _animatedDragWavePositionMultiplier,
-                                      showBorder: widget.showBorder,
-                                      isVertical: isVertical,
-                                      colorMode: widget.colorMode,
-                                      customGradientColors:
-                                          widget.customGradientColors,
-                                      borderColor: widget.borderColor,
-                                      borderGradientColors:
-                                          widget.borderGradientColors,
-                                    ),
+                                return CustomPaint(
+                                  painter: _IOSLiquidPainter(
+                                    position: effectivePosition,
+                                    itemWidth: cellSize,
+                                    velocity: _isDragging ? _velocity : 0,
+                                    expansion: _expansionController.value,
+                                    wobble: wobbleVal,
+                                    dragWobble: _isDragging
+                                        ? _dragWobbleController.value
+                                        : 0,
+                                    horizontalInset: itemInset + listViewPad,
+                                    primaryColor: style.liquidColor!,
+                                    surfaceColor: style.containerColor!,
+                                    blobBaseWidthFactor:
+                                        widget.blobBaseWidthFactor,
+                                    blobExpandedWidthFactor:
+                                        widget.blobExpandedWidthFactor,
+                                    blobBaseHeight: widget.blobBaseHeight,
+                                    blobExpandedHeight:
+                                        widget.blobExpandedHeight,
+                                    blobStretchMultiplier:
+                                        widget.blobStretchMultiplier,
+                                    blobMaxStretch: widget.blobMaxStretch,
+                                    blobWobbleInfluenceOnWidth:
+                                        _animatedBlobWobbleInfluenceOnWidth,
+                                    blobWobbleInfluenceOnHeight:
+                                        _animatedBlobWobbleInfluenceOnHeight,
+                                    shadowOffset: _animatedShadowOffset,
+                                    shadowAlpha: _animatedShadowAlpha,
+                                    shadowBlurSigma: _animatedShadowBlurSigma,
+                                    borderAlpha: _animatedBorderAlpha,
+                                    borderWidth: _animatedBorderWidth,
+                                    gradientSurfaceAlpha:
+                                        _animatedGradientSurfaceAlpha,
+                                    gradientPrimaryAlpha1:
+                                        _animatedGradientPrimaryAlpha1,
+                                    gradientPrimaryAlpha2:
+                                        _animatedGradientPrimaryAlpha2,
+                                    dragWaveHeightMultiplier:
+                                        _animatedDragWaveHeightMultiplier,
+                                    dragWavePositionMultiplier:
+                                        _animatedDragWavePositionMultiplier,
+                                    showBorder: widget.showBorder,
+                                    isVertical: isVertical,
+                                    colorMode: widget.colorMode,
+                                    customGradientColors:
+                                        widget.customGradientColors,
+                                    borderColor: widget.borderColor,
+                                    borderGradientColors:
+                                        widget.borderGradientColors,
                                   ),
                                 );
                               },
@@ -749,7 +756,12 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
     _wobbleController.stop();
     _snapTarget = target;
 
-    final animation = Tween<double>(begin: _dragPosition, end: target).animate(
+    final beginPosition = _dragPosition;
+    final beginScroll =
+        _scrollController.hasClients ? _scrollController.offset : 0.0;
+    final targetScroll = _getScrollTarget(clampedIndex);
+
+    final animation = Tween<double>(begin: beginPosition, end: target).animate(
       CurvedAnimation(parent: _snapController, curve: widget.curve),
     );
 
@@ -757,8 +769,18 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
 
     void listener() {
       if (_currentAnimation == animation && mounted) {
+        final progress = _snapController.value;
         setState(() {
           _dragPosition = animation.value;
+          if (_scrollController.hasClients &&
+              widget.items.length > _maxItemDisplayed) {
+            final currentScroll =
+                lerpDouble(beginScroll, targetScroll, progress) ?? beginScroll;
+            _scrollController.jumpTo(currentScroll.clamp(
+              0.0,
+              _scrollController.position.maxScrollExtent,
+            ));
+          }
         });
       }
     }
@@ -970,19 +992,13 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
     );
   }
 
-  void _centerFocusItem(int index) {
-    if (widget.items.length <= _maxItemDisplayed) return;
-    if (!_scrollController.hasClients) return;
+  double _getScrollTarget(int index) {
+    if (!_scrollController.hasClients) return 0;
+    if (widget.items.length <= _maxItemDisplayed) return 0;
     final viewport = _scrollController.position.viewportDimension;
     final cellSize = viewport / _maxItemDisplayed;
     final maxScroll = _scrollController.position.maxScrollExtent;
-    final offset = (cellSize * index - (viewport - cellSize) / 2)
-        .clamp(0.0, maxScroll);
-    _scrollController.animateTo(
-      offset,
-      duration: widget.animationDuration,
-      curve: widget.curve,
-    );
+    return (cellSize * index - (viewport - cellSize) / 2).clamp(0.0, maxScroll);
   }
 
   double _horizontalPadding(EdgeInsetsGeometry geometry) {
@@ -991,7 +1007,6 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
   }
 
   void _onTapItem(int index) {
-    _centerFocusItem(index);
     _selectIndex(index);
     _animateTo(index);
   }
