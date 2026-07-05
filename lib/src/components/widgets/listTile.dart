@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_design_system/flutter_design_system.dart';
 
 class AppListTile extends StatelessWidget {
   final Widget? leading;
@@ -36,7 +34,7 @@ class AppListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColorContainer ?? Colors.white,
+        color: backgroundColorContainer,
         borderRadius:
             borderRadius ?? BorderRadius.circular(borderRadiusNum ?? 8),
         border: border,
@@ -55,7 +53,7 @@ class AppListTile extends StatelessWidget {
           borderRadius:
               borderRadius ?? BorderRadius.circular(borderRadiusNum ?? 8),
         ),
-        tileColor: tileColor ?? Colors.white,
+        tileColor: tileColor,
       ),
     );
   }
