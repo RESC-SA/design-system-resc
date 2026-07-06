@@ -596,6 +596,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                                 _wobbleController,
                                 _dragWobbleController,
                                 _visualController,
+                                _scrollController,
                               ]),
                               builder: (context, _) {
                                 final wobbleVal = math.sin(

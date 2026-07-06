@@ -14,6 +14,8 @@ class AppListTile extends StatelessWidget {
   final List<BoxShadow>? boxShadow;
   final Offset? shadowOffset;
   final Color? tileColor;
+  final double? height;
+  final double? width;
   const AppListTile(
       {super.key,
       this.leading,
@@ -28,11 +30,15 @@ class AppListTile extends StatelessWidget {
       this.border,
       this.boxShadow,
       this.shadowOffset,
-      this.tileColor});
+      this.tileColor,
+      this.height,
+      this.width});
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: height,
+      width: width,
       decoration: BoxDecoration(
         color: backgroundColorContainer,
         borderRadius:
