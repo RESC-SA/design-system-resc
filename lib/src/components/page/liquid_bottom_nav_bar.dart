@@ -209,6 +209,7 @@ class _IOSLiquidPainter extends CustomPainter {
   final double dragWavePositionMultiplier;
   final bool showBorder;
   final bool isVertical;
+  final double centerYOffset;
   final LiquidColorMode colorMode;
   final List<Color>? customGradientColors;
   final Color? borderColor;
@@ -243,6 +244,7 @@ class _IOSLiquidPainter extends CustomPainter {
     required this.dragWavePositionMultiplier,
     required this.showBorder,
     required this.isVertical,
+    this.centerYOffset = 0,
     required this.colorMode,
     this.customGradientColors,
     this.borderColor,
@@ -253,7 +255,7 @@ class _IOSLiquidPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final pos = horizontalInset + (position * itemWidth) + (itemWidth / 2);
     final centerX = isVertical ? size.width / 2 : pos;
-    final centerY = isVertical ? pos : size.height / 2;
+    final centerY = (isVertical ? pos : size.height / 2) - centerYOffset;
 
     final baseWidth = itemWidth * blobBaseWidthFactor;
     final expandedWidth = itemWidth * blobExpandedWidthFactor;
@@ -609,10 +611,13 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                                         : 0.0;
                                 final effectivePosition =
                                     _dragPosition - scrollOffset / cellSize;
+                                final iconOffset =
+                                    style.showLabel ? (2.0 + 9.0) / 2 : 0.0;
                                 return CustomPaint(
                                   painter: _IOSLiquidPainter(
                                     position: effectivePosition,
                                     itemWidth: cellSize,
+                                    centerYOffset: iconOffset,
                                     velocity: _isDragging ? _velocity : 0,
                                     expansion: _expansionController.value,
                                     wobble: wobbleVal,
