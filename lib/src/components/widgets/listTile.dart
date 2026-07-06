@@ -135,7 +135,7 @@ class AppListTileV2 extends StatelessWidget {
 }
 
 class AppListTileV3 extends StatelessWidget {
-  final String subtitle;
+  final String? subtitle;
   final double width, height;
   final Color backgroundColorContainer;
   final List<BoxShadow> boxShadow;
@@ -148,7 +148,7 @@ class AppListTileV3 extends StatelessWidget {
   final Widget? switchWidget;
   const AppListTileV3(
       {super.key,
-      required this.subtitle,
+       this.subtitle,
       this.width = 100,
       required this.height,
       required this.backgroundColorContainer,
@@ -176,10 +176,12 @@ class AppListTileV3 extends StatelessWidget {
         minTileHeight: 5,
         //tileColor: context.liquidGlassTile.withValues(alpha: 0.5),
         title: title,
-        subtitle: Text(
-          subtitle,
-          style: subtitleStyle,
-        ),
+        subtitle: subtitle == null
+            ? SizedBox.shrink()
+            : Text(
+                subtitle!,  
+                style: subtitleStyle,
+              ),
         trailing: switchWidget,
         // subtitle: Text(
         //   subtitle,
