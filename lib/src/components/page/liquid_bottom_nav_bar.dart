@@ -102,6 +102,9 @@ class LiquidBottomNavBar extends StatefulWidget {
 
   /// Wraps each item during a reorder drag. Default scales to 1.5x.
   final ReorderItemProxyDecorator? proxyDecorator;
+
+  /// Optional controller for drag behavior control.
+  final LiquidBottomNavBarController? controller;
   final List<Color>? customGradientColors;
   final Color? borderColor;
   final List<Color>? borderGradientColors;
@@ -165,6 +168,7 @@ class LiquidBottomNavBar extends StatefulWidget {
     this.colorMode = LiquidColorMode.gradient,
     this.onReorder,
     this.proxyDecorator,
+    this.controller,
     this.customGradientColors,
     this.borderColor,
     this.borderGradientColors,
@@ -174,6 +178,22 @@ class LiquidBottomNavBar extends StatefulWidget {
 
   @override
   State<LiquidBottomNavBar> createState() => _LiquidBottomNavBarState();
+}
+
+/// Controller for programmatically controlling drag behavior.
+class LiquidBottomNavBarController extends ChangeNotifier {
+  bool _dragEnabled = true;
+
+  /// Whether drag-to-change-tabs is enabled.
+  bool get dragEnabled => _dragEnabled;
+
+  /// Enable or disable drag-to-change-tabs.
+  void setDragEnabled(bool enabled) {
+    if (_dragEnabled != enabled) {
+      _dragEnabled = enabled;
+      notifyListeners();
+    }
+  }
 }
 
 enum LiquidColorMode { single, gradient }
@@ -389,16 +409,17 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
 
   final ScrollController _scrollController = ScrollController();
 
-  //double _dragPosition = 0;
+  double _dragPosition = 0;
   bool _isDragging = false;
   bool _isReordering = false;
   double _velocity = 0;
+
   double? _snapTarget;
   Animation<double>? _currentAnimation;
   VoidCallback? _snapListener;
-
   // Animated visual property values
   double _animatedShadowOffset = 3;
+
   double _animatedShadowAlpha = 0.15;
   double _animatedShadowBlurSigma = 10;
   double _animatedBorderAlpha = 0.8;
@@ -410,9 +431,9 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
   double _animatedDragWavePositionMultiplier = 1.4;
   double _animatedBlobWobbleInfluenceOnWidth = 1;
   double _animatedBlobWobbleInfluenceOnHeight = 0.3;
-
   // Target values for animation
   double? _targetShadowOffset;
+
   double? _targetShadowAlpha;
   double? _targetShadowBlurSigma;
   double? _targetBorderAlpha;
@@ -424,6 +445,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
   double? _targetDragWavePositionMultiplier;
   double? _targetBlobWobbleInfluenceOnWidth;
   double? _targetBlobWobbleInfluenceOnHeight;
+  bool get _isDragEnabled => widget.controller?.dragEnabled ?? widget.canScroll;
 
   void animateVisualProperties({
     double? shadowOffset,
@@ -524,7 +546,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
               child: Container(
                 alignment: Alignment.center,
                 child: GestureDetector(
-                  onPanStart: !_isReordering
+                  onPanStart: !_isReordering && _isDragEnabled
                       ? (_) {
                           setState(() => _isDragging = true);
                           _expansionController.forward();
@@ -533,21 +555,21 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                           _dragWobbleController.repeat();
                         }
                       : null,
-                  onPanUpdate: !_isReordering
+                  onPanUpdate: !_isReordering && _isDragEnabled
                       ? (details) {
                           setState(() {
                             final delta = isVertical
                                 ? details.delta.dy
                                 : details.delta.dx;
                             _velocity = delta / cellSize;
-                            // _dragPosition = (_dragPosition + _velocity).clamp(
-                            //   0.0,
-                            //   (widget.items.length - 1).toDouble(),
-                            // );
+                            _dragPosition = (_dragPosition + _velocity).clamp(
+                              0.0,
+                              (widget.items.length - 1).toDouble(),
+                            );
                           });
                         }
                       : null,
-                  onPanEnd: !_isReordering
+                  onPanEnd: !_isReordering && _isDragEnabled
                       ? (_) {
                           setState(() {
                             _isDragging = false;
@@ -555,12 +577,12 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                           });
                           _dragWobbleController.stop();
                           _expansionController.reverse();
-                          // final nearestTab = _dragPosition
-                          //     .round()
-                          //     .clamp(0, widget.items.length - 1);
-                       //   _animateTo(nearestTab);
-                          //widget.onDrag?.call(nearestTab);
-                         // _selectIndex(nearestTab);
+                          final nearestTab = _dragPosition
+                              .round()
+                              .clamp(0, widget.items.length - 1);
+                          _animateTo(nearestTab);
+                          widget.onDrag?.call(nearestTab);
+                          _selectIndex(nearestTab);
                         }
                       : null,
                   child: DecoratedBox(
@@ -599,6 +621,8 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                                 _dragWobbleController,
                                 _visualController,
                                 _scrollController,
+                                if (widget.controller != null)
+                                  widget.controller!,
                               ]),
                               builder: (context, _) {
                                 final wobbleVal = math.sin(
@@ -610,7 +634,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                                         ? _scrollController.offset
                                         : 0.0;
                                 final effectivePosition =
-                                    scrollOffset / cellSize;
+                                    _dragPosition - scrollOffset / cellSize;
                                 final iconOffset =
                                     style.showLabel ? (2.0 + 9.0) / 2 : 0.0;
                                 return CustomPaint(
@@ -707,6 +731,11 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
       }
       _animateTo(widget.currentIndex);
     }
+
+    // Handle controller changes
+    if (oldWidget.controller != widget.controller) {
+      // No manual listener needed - controller is used in AnimatedBuilder
+    }
   }
 
   @override
@@ -724,7 +753,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
   @override
   void initState() {
     super.initState();
-    //_dragPosition = widget.currentIndex.toDouble();
+    _dragPosition = widget.currentIndex.toDouble();
 
     _expansionController = AnimationController(
       vsync: this,
@@ -753,21 +782,21 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
     final target = clampedIndex.toDouble();
     _removeSnapListener();
 
-    // if (_dragPosition == target) {
-    //   _wobbleController.forward(from: 0);
-    //   return;
-    // }
+    if (_dragPosition == target) {
+      _wobbleController.forward(from: 0);
+      return;
+    }
 
     _snapController.stop();
     _wobbleController.stop();
     _snapTarget = target;
 
-   // final beginPosition = _dragPosition;
+    final beginPosition = _dragPosition;
     final beginScroll =
         _scrollController.hasClients ? _scrollController.offset : 0.0;
     final targetScroll = _getScrollTarget(clampedIndex);
 
-    final animation = Tween<double>(begin: 0.0, end: target).animate(
+    final animation = Tween<double>(begin: beginPosition, end: target).animate(
       CurvedAnimation(parent: _snapController, curve: widget.curve),
     );
 
@@ -777,7 +806,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
       if (_currentAnimation == animation && mounted) {
         final progress = _snapController.value;
         setState(() {
-          // _dragPosition   = animation.value;
+          _dragPosition = animation.value;
           if (_scrollController.hasClients &&
               widget.items.length > _maxItemDisplayed) {
             final currentScroll =
@@ -906,7 +935,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
 
     Widget Function(BuildContext, int) itemBuilder = (context, index) {
       final item = widget.items[index];
-      final distance = (index).abs();
+      final distance = (index - _dragPosition).abs();
       final isSelected = index == safeIndex;
 
       final iconColor = widget.items[index].colorIconNavBar ??
@@ -971,14 +1000,16 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
     };
 
     final onReorder = widget.onReorder;
+    final physics = _isDragEnabled
+        ? const NeverScrollableScrollPhysics()
+        : const ClampingScrollPhysics();
+
     if (onReorder != null) {
       return ReorderableListView.builder(
         scrollController: _scrollController,
         padding: padding,
         scrollDirection: widget.scrollDirection,
-        physics: widget.canScroll
-            ? const NeverScrollableScrollPhysics()
-            : const ClampingScrollPhysics(),
+        physics: physics,
         proxyDecorator: widget.proxyDecorator ??
             (child, index, animation) => ScaleTransition(
                   scale: animation.drive(Tween(begin: 1.0, end: 1.5)),
@@ -997,9 +1028,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
       padding: padding,
       itemCount: widget.items.length,
       scrollDirection: widget.scrollDirection,
-      physics: widget.canScroll
-          ? const NeverScrollableScrollPhysics()
-          : const ClampingScrollPhysics(),
+      physics: physics,
       itemBuilder: itemBuilder,
     );
   }
