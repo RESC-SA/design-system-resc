@@ -1036,6 +1036,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
     // Only use ReorderableListView if reorder is enabled AND onReorder is provided
     if (onReorder != null && _isReorderEnabled) {
       return ReorderableListView.builder(
+        buildDefaultDragHandles: false,
         scrollController: _scrollController,
         padding: padding,
         scrollDirection: widget.scrollDirection,
