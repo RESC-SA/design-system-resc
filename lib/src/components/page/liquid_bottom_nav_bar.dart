@@ -180,17 +180,29 @@ class LiquidBottomNavBar extends StatefulWidget {
   State<LiquidBottomNavBar> createState() => _LiquidBottomNavBarState();
 }
 
-/// Controller for programmatically controlling drag behavior.
+/// Controller for programmatically controlling drag and reorder behavior.
 class LiquidBottomNavBarController extends ChangeNotifier {
   bool _dragEnabled = true;
+  bool _reorderEnabled = true;
 
-  /// Whether drag-to-change-tabs is enabled.
+  /// Whether swipe-to-change-tabs is enabled.
   bool get dragEnabled => _dragEnabled;
 
-  /// Enable or disable drag-to-change-tabs.
+  /// Whether long-press drag-to-reorder is enabled.
+  bool get reorderEnabled => _reorderEnabled;
+
+  /// Enable or disable swipe-to-change-tabs.
   void setDragEnabled(bool enabled) {
     if (_dragEnabled != enabled) {
       _dragEnabled = enabled;
+      notifyListeners();
+    }
+  }
+
+  /// Enable or disable long-press drag-to-reorder.
+  void setReorderEnabled(bool enabled) {
+    if (_reorderEnabled != enabled) {
+      _reorderEnabled = enabled;
       notifyListeners();
     }
   }
@@ -446,6 +458,9 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
   double? _targetBlobWobbleInfluenceOnWidth;
   double? _targetBlobWobbleInfluenceOnHeight;
   bool get _isDragEnabled => widget.controller?.dragEnabled ?? widget.canScroll;
+
+  bool get _isReorderEnabled =>
+      widget.controller?.reorderEnabled ?? (widget.onReorder != null);
 
   void animateVisualProperties({
     double? shadowOffset,
@@ -1005,7 +1020,8 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
         ? const NeverScrollableScrollPhysics()
         : const ClampingScrollPhysics();
 
-    if (onReorder != null) {
+    // Only use ReorderableListView if reorder is enabled AND onReorder is provided
+    if (onReorder != null && _isReorderEnabled) {
       return ReorderableListView.builder(
         scrollController: _scrollController,
         padding: padding,
