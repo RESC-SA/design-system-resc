@@ -389,7 +389,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
 
   final ScrollController _scrollController = ScrollController();
 
-  double _dragPosition = 0;
+  //double _dragPosition = 0;
   bool _isDragging = false;
   bool _isReordering = false;
   double _velocity = 0;
@@ -540,10 +540,10 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                                 ? details.delta.dy
                                 : details.delta.dx;
                             _velocity = delta / cellSize;
-                            _dragPosition = (_dragPosition + _velocity).clamp(
-                              0.0,
-                              (widget.items.length - 1).toDouble(),
-                            );
+                            // _dragPosition = (_dragPosition + _velocity).clamp(
+                            //   0.0,
+                            //   (widget.items.length - 1).toDouble(),
+                            // );
                           });
                         }
                       : null,
@@ -555,12 +555,12 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                           });
                           _dragWobbleController.stop();
                           _expansionController.reverse();
-                          final nearestTab = _dragPosition
-                              .round()
-                              .clamp(0, widget.items.length - 1);
-                          _animateTo(nearestTab);
-                          widget.onDrag?.call(nearestTab);
-                          _selectIndex(nearestTab);
+                          // final nearestTab = _dragPosition
+                          //     .round()
+                          //     .clamp(0, widget.items.length - 1);
+                       //   _animateTo(nearestTab);
+                          //widget.onDrag?.call(nearestTab);
+                         // _selectIndex(nearestTab);
                         }
                       : null,
                   child: DecoratedBox(
@@ -610,7 +610,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                                         ? _scrollController.offset
                                         : 0.0;
                                 final effectivePosition =
-                                    _dragPosition - scrollOffset / cellSize;
+                                    scrollOffset / cellSize;
                                 final iconOffset =
                                     style.showLabel ? (2.0 + 9.0) / 2 : 0.0;
                                 return CustomPaint(
@@ -724,7 +724,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
   @override
   void initState() {
     super.initState();
-    _dragPosition = widget.currentIndex.toDouble();
+    //_dragPosition = widget.currentIndex.toDouble();
 
     _expansionController = AnimationController(
       vsync: this,
@@ -753,21 +753,21 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
     final target = clampedIndex.toDouble();
     _removeSnapListener();
 
-    if (_dragPosition == target) {
-      _wobbleController.forward(from: 0);
-      return;
-    }
+    // if (_dragPosition == target) {
+    //   _wobbleController.forward(from: 0);
+    //   return;
+    // }
 
     _snapController.stop();
     _wobbleController.stop();
     _snapTarget = target;
 
-    final beginPosition = _dragPosition;
+   // final beginPosition = _dragPosition;
     final beginScroll =
         _scrollController.hasClients ? _scrollController.offset : 0.0;
     final targetScroll = _getScrollTarget(clampedIndex);
 
-    final animation = Tween<double>(begin: beginPosition, end: target).animate(
+    final animation = Tween<double>(begin: 0.0, end: target).animate(
       CurvedAnimation(parent: _snapController, curve: widget.curve),
     );
 
@@ -777,7 +777,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
       if (_currentAnimation == animation && mounted) {
         final progress = _snapController.value;
         setState(() {
-          _dragPosition = animation.value;
+          // _dragPosition   = animation.value;
           if (_scrollController.hasClients &&
               widget.items.length > _maxItemDisplayed) {
             final currentScroll =
@@ -906,7 +906,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
 
     Widget Function(BuildContext, int) itemBuilder = (context, index) {
       final item = widget.items[index];
-      final distance = (index - _dragPosition).abs();
+      final distance = (index).abs();
       final isSelected = index == safeIndex;
 
       final iconColor = widget.items[index].colorIconNavBar ??
