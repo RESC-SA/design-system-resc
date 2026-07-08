@@ -96,6 +96,9 @@ class LiquidBottomNavBar extends StatefulWidget {
   final Axis scrollDirection;
   final LiquidColorMode colorMode;
 
+  /// Whether to show default drag handles for reordering.
+  final bool buildDefaultDragHandles;
+
   /// Called when an item is dragged to a new position.
   /// Receives (oldIndex, newIndex) — the parent should reorder [items] accordingly.
   final ReorderCallback? onReorder;
@@ -166,6 +169,7 @@ class LiquidBottomNavBar extends StatefulWidget {
     this.enableScroll = true,
     this.scrollDirection = Axis.horizontal,
     this.colorMode = LiquidColorMode.gradient,
+    this.buildDefaultDragHandles = true,
     this.onReorder,
     this.proxyDecorator,
     this.controller,
@@ -258,6 +262,7 @@ class _IOSLiquidPainter extends CustomPainter {
   final List<Color>? customGradientColors;
   final Color? borderColor;
   final List<Color>? borderGradientColors;
+  final bool buildDefaultDragHandles;
   _IOSLiquidPainter({
     required this.position,
     required this.itemWidth,
@@ -293,6 +298,7 @@ class _IOSLiquidPainter extends CustomPainter {
     this.customGradientColors,
     this.borderColor,
     this.borderGradientColors,
+    required this.buildDefaultDragHandles,
   });
 
   @override
@@ -470,10 +476,10 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
   double? _targetBlobWobbleInfluenceOnWidth;
   double? _targetBlobWobbleInfluenceOnHeight;
   bool get _isDragEnabled => widget.controller?.dragEnabled ?? widget.canScroll;
-  bool get _isTapEnabled => widget.controller?.tapEnabled ?? true;
-
   bool get _isReorderEnabled =>
       widget.controller?.reorderEnabled ?? (widget.onReorder != null);
+
+  bool get _isTapEnabled => widget.controller?.tapEnabled ?? true;
 
   void animateVisualProperties({
     double? shadowOffset,
@@ -717,6 +723,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                                     borderColor: widget.borderColor,
                                     borderGradientColors:
                                         widget.borderGradientColors,
+                                        buildDefaultDragHandles: widget.buildDefaultDragHandles
                                   ),
                                 );
                               },
@@ -1036,7 +1043,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
     // Only use ReorderableListView if reorder is enabled AND onReorder is provided
     if (onReorder != null && _isReorderEnabled) {
       return ReorderableListView.builder(
-        buildDefaultDragHandles: false,
+        buildDefaultDragHandles: widget.buildDefaultDragHandles,
         scrollController: _scrollController,
         padding: padding,
         scrollDirection: widget.scrollDirection,
