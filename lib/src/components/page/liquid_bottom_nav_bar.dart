@@ -184,12 +184,16 @@ class LiquidBottomNavBar extends StatefulWidget {
 class LiquidBottomNavBarController extends ChangeNotifier {
   bool _dragEnabled = true;
   bool _reorderEnabled = true;
+  bool _tapEnabled = true;
 
   /// Whether swipe-to-change-tabs is enabled.
   bool get dragEnabled => _dragEnabled;
 
   /// Whether long-press drag-to-reorder is enabled.
   bool get reorderEnabled => _reorderEnabled;
+
+  /// Whether individual item taps are enabled.
+  bool get tapEnabled => _tapEnabled;
 
   /// Enable or disable swipe-to-change-tabs.
   void setDragEnabled(bool enabled) {
@@ -203,6 +207,14 @@ class LiquidBottomNavBarController extends ChangeNotifier {
   void setReorderEnabled(bool enabled) {
     if (_reorderEnabled != enabled) {
       _reorderEnabled = enabled;
+      notifyListeners();
+    }
+  }
+
+  /// Enable or disable individual item taps.
+  void setTapEnabled(bool enabled) {
+    if (_tapEnabled != enabled) {
+      _tapEnabled = enabled;
       notifyListeners();
     }
   }
@@ -458,6 +470,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
   double? _targetBlobWobbleInfluenceOnWidth;
   double? _targetBlobWobbleInfluenceOnHeight;
   bool get _isDragEnabled => widget.controller?.dragEnabled ?? widget.canScroll;
+  bool get _isTapEnabled => widget.controller?.tapEnabled ?? true;
 
   bool get _isReorderEnabled =>
       widget.controller?.reorderEnabled ?? (widget.onReorder != null);
@@ -1001,7 +1014,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
         key: ValueKey('nav_item_$index'),
         constraints: itemConstraints,
         child: GestureDetector(
-          onTap: () => _onTapItem(index),
+          onTap: _isTapEnabled ? () => _onTapItem(index) : null,
           behavior: HitTestBehavior.opaque,
           child: _buildItemContent(
             isVertical: isVertical,
