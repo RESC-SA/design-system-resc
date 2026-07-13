@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../theme/theme_extensions.dart';
+import '../../../../generated/assets.dart';
+import '../../animate/animate_types.dart';
+import '../../animate/app_animate.dart';
 
 /// A loading widget that animates between PNG frames using flutter_animate.
 /// Supports frame-based animation by alternating between multiple PNG images.
@@ -303,5 +306,87 @@ class _PngLoadingState extends State<PngLoading>
         }
       }
     });
+  }
+}
+
+/// Controller for [PngLoadingV2] — manages animation config and playback state.
+class PngLoadingController extends ChangeNotifier {
+  bool autoplay;
+  int loopCount;
+  AppAnimateType animationType;
+  String? imagePath;
+  double size;
+  BoxDecoration? decoration;
+
+  int _resetKey = 0;
+  int get resetKey => _resetKey;
+
+  PngLoadingController({
+    this.autoplay = true,
+    this.loopCount = 0,
+    this.animationType = AppAnimateType.pulse,
+    this.imagePath,
+    this.size = 200,
+    this.decoration,
+  });
+
+  void play() {
+    autoplay = true;
+    _resetKey++;
+    notifyListeners();
+  }
+
+  void stop() {
+    autoplay = false;
+    _resetKey++;
+    notifyListeners();
+  }
+
+  void restart() {
+    _resetKey++;
+    notifyListeners();
+  }
+}
+
+/// Enhanced loading widget that uses the 200+ animation system via [AppAnimate].
+/// Driven by a [PngLoadingController] for configurable playback.
+class PngLoadingV2 extends StatelessWidget {
+  final PngLoadingController controller;
+
+  const PngLoadingV2({super.key, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final defaultDecoration = BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: colors.surface,
+        );
+
+        return SizedBox(
+          width: controller.size,
+          height: controller.size,
+          child: Container(
+            decoration: controller.decoration ?? defaultDecoration,
+            child: KeyedSubtree(
+              key: ValueKey(controller.resetKey),
+              child: AppAnimate(
+                type: controller.animationType,
+                autoplay: controller.autoplay,
+                loopCount: controller.loopCount,
+                child: Image.asset(
+                  controller.imagePath ?? Assets.imageRescLigh,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

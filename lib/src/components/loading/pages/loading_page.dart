@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_design_system/generated/assets.dart';
 
 import '../../../theme/theme_extensions.dart';
+import '../../animate/animate_types.dart';
 import '../widgets/png_loading.dart';
 
 /// A comprehensive loading page demonstrating various PNG loading animations.
@@ -23,8 +25,8 @@ class LoadingPage extends StatelessWidget {
           _section(theme, 'Frame Animation', children: [
             const Center(
               child: PngLoadingDual(
-                darkImagePath: 'assets/image/RESC-dark.png',
-                lightImagePath: 'assets/image/RESC-ligh.png',
+                darkImagePath: Assets.imageRescDark,
+                lightImagePath: Assets.imageRescLigh,
                 frameDuration: Duration(milliseconds: 600),
                 size: 200,
               ),
@@ -50,7 +52,7 @@ class LoadingPage extends StatelessWidget {
           _section(theme, 'Continuous Pulse', children: [
             const Center(
               child: PngLoadingPulse(
-                imagePath: 'assets/image/RESC-dark.png',
+                imagePath: Assets.imageRescDark,
                 size: 150,
                 pulseDuration: Duration(milliseconds: 1000),
               ),
@@ -61,17 +63,17 @@ class LoadingPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 PngLoadingFade(
-                  imagePath: 'assets/image/RESC-dark.png',
+                  imagePath: Assets.imageRescDark,
                   size: 60,
                   fadeDuration: const Duration(milliseconds: 300),
                 ),
                 PngLoadingFade(
-                  imagePath: 'assets/image/RESC-dark.png',
+                  imagePath: Assets.imageRescDark,
                   size: 80,
                   fadeDuration: const Duration(milliseconds: 500),
                 ),
                 PngLoadingFade(
-                  imagePath: 'assets/image/RESC-dark.png',
+                  imagePath: Assets.imageRescDark,
                   size: 100,
                   fadeDuration: const Duration(milliseconds: 700),
                 ),
@@ -82,12 +84,44 @@ class LoadingPage extends StatelessWidget {
             const Center(
               child: PngLoading(
                 imagePaths: [
-                  'assets/image/RESC-dark.png',
-                  'assets/image/RESC-ligh.png',
+                  Assets.imageRescDark,
+                  Assets.imageRescLigh,
                 ],
                 frameDuration: Duration(milliseconds: 400),
                 size: 180,
                 curve: Curves.easeInOut,
+              ),
+            ),
+          ]),
+          _section(theme, 'V2 — Pulse (AppAnimate)', children: [
+            Center(
+              child: PngLoadingV2(
+                controller: PngLoadingController(
+                  animationType: AppAnimateType.pulse,
+                  size: 200,
+                  loopCount: 0,
+                ),
+              ),
+            ),
+          ]),
+          _section(theme, 'V2 — Rotate In', children: [
+            Center(
+              child: PngLoadingV2(
+                controller: PngLoadingController(
+                  animationType: AppAnimateType.rotateIn,
+                  size: 150,
+                  loopCount: 3,
+                ),
+              ),
+            ),
+          ]),
+          _section(theme, 'V2 — Heartbeat', children: [
+            Center(
+              child: PngLoadingV2(
+                controller: PngLoadingController(
+                  animationType: AppAnimateType.heartbeat,
+                  size: 120,
+                ),
               ),
             ),
           ]),
@@ -99,7 +133,7 @@ class LoadingPage extends StatelessWidget {
 
   Widget _buildPulsingLogo(double size) {
     return PngLoadingFade(
-      imagePath: 'assets/image/RESC-dark.png',
+      imagePath: Assets.imageRescDark,
       size: size,
       fadeDuration: const Duration(milliseconds: 500),
     );

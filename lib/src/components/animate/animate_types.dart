@@ -1,13 +1,25 @@
 enum AppAnimateType {
-  // ── Fade ──
+  // ── Fade (14) ──
   fadeIn,
   fadeOut,
   fadeInDown,
   fadeInUp,
   fadeInLeft,
   fadeInRight,
+  fadeInDownLeft,
+  fadeInDownRight,
+  fadeInUpLeft,
+  fadeInUpRight,
+  fadeOutDownLeft,
+  fadeOutDownRight,
+  fadeOutUpLeft,
+  fadeOutUpRight,
+  fadeInFast,
+  fadeInSlow,
+  fadeOutFast,
+  fadeOutSlow,
 
-  // ── Slide ──
+  // ── Slide (16) ──
   slideInUp,
   slideInDown,
   slideInLeft,
@@ -16,24 +28,58 @@ enum AppAnimateType {
   slideOutDown,
   slideOutLeft,
   slideOutRight,
+  slideInUpLeft,
+  slideInUpRight,
+  slideInDownLeft,
+  slideInDownRight,
+  slideOutUpLeft,
+  slideOutUpRight,
+  slideOutDownLeft,
+  slideOutDownRight,
+  slideInUpFast,
+  slideInUpSlow,
 
-  // ── Zoom / Scale ──
+  // ── Zoom / Scale (18) ──
   zoomIn,
   zoomOut,
   scaleIn,
   scaleOut,
   pulse,
   bounce,
+  zoomInDown,
+  zoomInUp,
+  zoomInLeft,
+  zoomInRight,
+  zoomOutDown,
+  zoomOutUp,
+  zoomOutLeft,
+  zoomOutRight,
+  scaleXIn,
+  scaleXOut,
+  scaleYIn,
+  scaleYOut,
+  zoomInFast,
+  zoomInSlow,
 
-  // ── Rotate ──
+  // ── Rotate (14) ──
   rotateIn,
   rotateOut,
   flipInX,
   flipInY,
   flipOutX,
   flipOutY,
+  rotateInDownLeft,
+  rotateInDownRight,
+  rotateInUpLeft,
+  rotateInUpRight,
+  rotateOutDownLeft,
+  rotateOutDownRight,
+  rotateOutUpLeft,
+  rotateOutUpRight,
+  rotateInFast,
+  rotateInSlow,
 
-  // ── Special ──
+  // ── Special (30) ──
   shimmer,
   blur,
   glow,
@@ -44,8 +90,28 @@ enum AppAnimateType {
   flash,
   rubberBand,
   heartbeat,
+  glowPulse,
+  neonPulse,
+  gradientShift,
+  scanLine,
+  morph,
+  distort,
+  wave,
+  rippleExpand,
+  rippleContract,
+  vortex,
+  spiral,
+  orbit,
+  pendulum,
+  blink,
+  flicker,
+  scramble,
+  glitch,
+  loadingDots,
+  skeletonWave,
+  confetti,
 
-  // ── Bounce ──
+  // ── Bounce (20) ──
   bounceIn,
   bounceInDown,
   bounceInUp,
@@ -54,110 +120,250 @@ enum AppAnimateType {
   bounceOut,
   bounceOutDown,
   bounceOutUp,
+  bounceInDownLeft,
+  bounceInDownRight,
+  bounceInUpLeft,
+  bounceInUpRight,
+  bounceOutDownLeft,
+  bounceOutDownRight,
+  bounceOutUpLeft,
+  bounceOutUpRight,
+  bounceInFade,
+  bounceOutFade,
 
-  // ── Elastic ──
+  // ── Elastic (14) ──
   elasticIn,
   elasticOut,
   elasticInOut,
   elasticInDown,
   elasticInUp,
   elasticInLeft,
+  elasticInRight,
+  elasticOutDown,
+  elasticOutUp,
+  elasticOutRight,
+  elasticOutLeft,
+  elasticInFade,
+  elasticOutFade,
 
-  // ── Combo ──
+  // ── Combo (18) ──
   fadeInScale,
   fadeInSlide,
   fadeInRotate,
   fadeOutScale,
   fadeOutSlide,
   fadeOutRotate,
+  fadeInScaleRotate,
+  fadeInSlideScale,
+  fadeInSlideRotate,
+  fadeOutScaleRotate,
+  fadeOutSlideScale,
+  fadeOutSlideRotate,
+  zoomInRotate,
+  zoomOutRotate,
+  scaleInRotate,
 
-  // ── Text / Container ──
+  // ── Text / Container (16) ──
   typewriter,
   textReveal,
   marquee,
-  ripple;
+  ripple,
+  textWave,
+  textBounce,
+  textFlip,
+  textSpin,
+  letterFade,
+  letterSlide,
+  letterScale,
+  letterRotate,
+  wordFade,
+  wordSlide,
+  wordScale,
+  wordRotate,
 
-  String get label {
-    switch (this) {
-      case fadeIn: return 'Fade In';
-      case fadeOut: return 'Fade Out';
-      case fadeInDown: return 'Fade In Down';
-      case fadeInUp: return 'Fade In Up';
-      case fadeInLeft: return 'Fade In Left';
-      case fadeInRight: return 'Fade In Right';
-      case slideInUp: return 'Slide In Up';
-      case slideInDown: return 'Slide In Down';
-      case slideInLeft: return 'Slide In Left';
-      case slideInRight: return 'Slide In Right';
-      case slideOutUp: return 'Slide Out Up';
-      case slideOutDown: return 'Slide Out Down';
-      case slideOutLeft: return 'Slide Out Left';
-      case slideOutRight: return 'Slide Out Right';
-      case zoomIn: return 'Zoom In';
-      case zoomOut: return 'Zoom Out';
-      case scaleIn: return 'Scale In';
-      case scaleOut: return 'Scale Out';
-      case pulse: return 'Pulse';
-      case bounce: return 'Bounce';
-      case rotateIn: return 'Rotate In';
-      case rotateOut: return 'Rotate Out';
-      case flipInX: return 'Flip In X';
-      case flipInY: return 'Flip In Y';
-      case flipOutX: return 'Flip Out X';
-      case flipOutY: return 'Flip Out Y';
-      case shimmer: return 'Shimmer';
-      case blur: return 'Blur';
-      case glow: return 'Glow';
-      case shake: return 'Shake';
-      case jello: return 'Jello';
-      case swing: return 'Swing';
-      case wobble: return 'Wobble';
-      case flash: return 'Flash';
-      case rubberBand: return 'Rubber Band';
-      case heartbeat: return 'Heartbeat';
-      case bounceIn: return 'Bounce In';
-      case bounceInDown: return 'Bounce In Down';
-      case bounceInUp: return 'Bounce In Up';
-      case bounceInLeft: return 'Bounce In Left';
-      case bounceInRight: return 'Bounce In Right';
-      case bounceOut: return 'Bounce Out';
-      case bounceOutDown: return 'Bounce Out Down';
-      case bounceOutUp: return 'Bounce Out Up';
-      case elasticIn: return 'Elastic In';
-      case elasticOut: return 'Elastic Out';
-      case elasticInOut: return 'Elastic In Out';
-      case elasticInDown: return 'Elastic In Down';
-      case elasticInUp: return 'Elastic In Up';
-      case elasticInLeft: return 'Elastic In Left';
-      case fadeInScale: return 'Fade In + Scale';
-      case fadeInSlide: return 'Fade In + Slide';
-      case fadeInRotate: return 'Fade In + Rotate';
-      case fadeOutScale: return 'Fade Out + Scale';
-      case fadeOutSlide: return 'Fade Out + Slide';
-      case fadeOutRotate: return 'Fade Out + Rotate';
-      case typewriter: return 'Typewriter';
-      case textReveal: return 'Text Reveal';
-      case marquee: return 'Marquee';
-      case ripple: return 'Ripple';
-    }
-  }
+  // ── Utility (20) ──
+  revealLeft,
+  revealRight,
+  revealUp,
+  revealDown,
+  shimmerSlide,
+  shimmerWave,
+  pulseSoft,
+  pulseHard,
+  pulseFast,
+  pulseSlow,
+  breathe,
+  float,
+  drift,
+  shakeX,
+  shakeY,
+  shakeDiagonal,
+  swingX,
+  swingY,
+  swingDiagonal,
+  pulseGlow,
 
-  String get group {
-    switch (this) {
-      case fadeIn: case fadeOut: case fadeInDown: case fadeInUp: case fadeInLeft: case fadeInRight: return 'Fade';
-      case slideInUp: case slideInDown: case slideInLeft: case slideInRight: case slideOutUp: case slideOutDown: case slideOutLeft: case slideOutRight: return 'Slide';
-      case zoomIn: case zoomOut: case scaleIn: case scaleOut: case pulse: case bounce: return 'Zoom / Scale';
-      case rotateIn: case rotateOut: case flipInX: case flipInY: case flipOutX: case flipOutY: return 'Rotate';
-      case shimmer: case blur: case glow: case shake: case jello: case swing: case wobble: case flash: case rubberBand: case heartbeat: return 'Special';
-      case bounceIn: case bounceInDown: case bounceInUp: case bounceInLeft: case bounceInRight: case bounceOut: case bounceOutDown: case bounceOutUp: return 'Bounce';
-      case elasticIn: case elasticOut: case elasticInOut: case elasticInDown: case elasticInUp: case elasticInLeft: return 'Elastic';
-      case fadeInScale: case fadeInSlide: case fadeInRotate: case fadeOutScale: case fadeOutSlide: case fadeOutRotate: return 'Combo';
-      case typewriter: case textReveal: case marquee: case ripple: return 'Text / Container';
-    }
-  }
+  // ── Speed / Intensity variants (20) ──
+  scaleInFast,
+  scaleInSlow,
+  pulseRotate,
+  pulseX,
+  pulseY,
+  pulseBorder,
+  blinkFast,
+  blinkSlow,
+  fadeInSoft,
+  fadeInStrong,
+  slideInUpStrong,
+  slideInUpSoft,
+  scaleInBounce,
+  rotateInBounce,
+  fadeInBounce,
+  slideInBounce,
+  zoomInBounce,
+  elasticBounce,
+  wobbleFast,
+  wobbleSlow;
+
+  String get label => _generateLabel(this);
+
+  String get group => _generateGroup(this);
 
   bool get isTextOnly => switch (this) {
-    typewriter || textReveal || marquee => true,
+    typewriter || textReveal || marquee || textWave || textBounce ||
+    textFlip || textSpin || letterFade || letterSlide || letterScale ||
+    letterRotate || wordFade || wordSlide || wordScale || wordRotate ||
+    scramble || glitch => true,
     _ => false,
   };
+}
+
+String _generateLabel(AppAnimateType type) {
+  return type.name
+      .replaceAllMapped(RegExp(r'[A-Z]'), (m) => ' ${m.group(0)}')
+      .replaceAllMapped(RegExp(r'(\d)'), (m) => ' ${m.group(0)}')
+      .trim()
+      .split(' ')
+      .map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}')
+      .join(' ');
+}
+
+String _generateGroup(AppAnimateType type) {
+  switch (type) {
+    case AppAnimateType.fadeIn: case AppAnimateType.fadeOut:
+    case AppAnimateType.fadeInDown: case AppAnimateType.fadeInUp:
+    case AppAnimateType.fadeInLeft: case AppAnimateType.fadeInRight:
+    case AppAnimateType.fadeInDownLeft: case AppAnimateType.fadeInDownRight:
+    case AppAnimateType.fadeInUpLeft: case AppAnimateType.fadeInUpRight:
+    case AppAnimateType.fadeOutDownLeft: case AppAnimateType.fadeOutDownRight:
+    case AppAnimateType.fadeOutUpLeft: case AppAnimateType.fadeOutUpRight:
+    case AppAnimateType.fadeInFast: case AppAnimateType.fadeInSlow:
+    case AppAnimateType.fadeOutFast: case AppAnimateType.fadeOutSlow:
+    case AppAnimateType.fadeInSoft: case AppAnimateType.fadeInStrong:
+    case AppAnimateType.fadeInBounce: return 'Fade';
+
+    case AppAnimateType.slideInUp: case AppAnimateType.slideInDown:
+    case AppAnimateType.slideInLeft: case AppAnimateType.slideInRight:
+    case AppAnimateType.slideOutUp: case AppAnimateType.slideOutDown:
+    case AppAnimateType.slideOutLeft: case AppAnimateType.slideOutRight:
+    case AppAnimateType.slideInUpLeft: case AppAnimateType.slideInUpRight:
+    case AppAnimateType.slideInDownLeft: case AppAnimateType.slideInDownRight:
+    case AppAnimateType.slideOutUpLeft: case AppAnimateType.slideOutUpRight:
+    case AppAnimateType.slideOutDownLeft: case AppAnimateType.slideOutDownRight:
+    case AppAnimateType.slideInUpFast: case AppAnimateType.slideInUpSlow:
+    case AppAnimateType.slideInUpStrong: case AppAnimateType.slideInUpSoft:
+    case AppAnimateType.slideInBounce: return 'Slide';
+
+    case AppAnimateType.zoomIn: case AppAnimateType.zoomOut:
+    case AppAnimateType.zoomInDown: case AppAnimateType.zoomInUp:
+    case AppAnimateType.zoomInLeft: case AppAnimateType.zoomInRight:
+    case AppAnimateType.zoomOutDown: case AppAnimateType.zoomOutUp:
+    case AppAnimateType.zoomOutLeft: case AppAnimateType.zoomOutRight:
+    case AppAnimateType.zoomInFast: case AppAnimateType.zoomInSlow:
+    case AppAnimateType.zoomInBounce: return 'Zoom / Scale';
+
+    case AppAnimateType.scaleIn: case AppAnimateType.scaleOut:
+    case AppAnimateType.scaleXIn: case AppAnimateType.scaleXOut:
+    case AppAnimateType.scaleYIn: case AppAnimateType.scaleYOut:
+    case AppAnimateType.scaleInFast: case AppAnimateType.scaleInSlow:
+    case AppAnimateType.scaleInBounce: return 'Zoom / Scale';
+
+    case AppAnimateType.pulse: case AppAnimateType.bounce:
+    case AppAnimateType.pulseSoft: case AppAnimateType.pulseHard:
+    case AppAnimateType.pulseFast: case AppAnimateType.pulseSlow:
+    case AppAnimateType.pulseRotate: case AppAnimateType.pulseX:
+    case AppAnimateType.pulseY: case AppAnimateType.pulseBorder:
+    case AppAnimateType.pulseGlow: return 'Pulse / Bounce';
+
+    case AppAnimateType.rotateIn: case AppAnimateType.rotateOut:
+    case AppAnimateType.rotateInFast: case AppAnimateType.rotateInSlow:
+    case AppAnimateType.rotateInBounce:
+    case AppAnimateType.rotateInDownLeft: case AppAnimateType.rotateInDownRight:
+    case AppAnimateType.rotateInUpLeft: case AppAnimateType.rotateInUpRight:
+    case AppAnimateType.rotateOutDownLeft: case AppAnimateType.rotateOutDownRight:
+    case AppAnimateType.rotateOutUpLeft: case AppAnimateType.rotateOutUpRight:
+    case AppAnimateType.flipInX: case AppAnimateType.flipInY:
+    case AppAnimateType.flipOutX: case AppAnimateType.flipOutY: return 'Rotate / Flip';
+
+    case AppAnimateType.shimmer: case AppAnimateType.blur: case AppAnimateType.glow:
+    case AppAnimateType.shake: case AppAnimateType.jello: case AppAnimateType.swing:
+    case AppAnimateType.wobble: case AppAnimateType.flash:
+    case AppAnimateType.rubberBand: case AppAnimateType.heartbeat:
+    case AppAnimateType.glowPulse: case AppAnimateType.neonPulse:
+    case AppAnimateType.gradientShift: case AppAnimateType.scanLine:
+    case AppAnimateType.morph: case AppAnimateType.distort: case AppAnimateType.wave:
+    case AppAnimateType.rippleExpand: case AppAnimateType.rippleContract:
+    case AppAnimateType.vortex: case AppAnimateType.spiral: case AppAnimateType.orbit:
+    case AppAnimateType.pendulum: case AppAnimateType.blink: case AppAnimateType.flicker:
+    case AppAnimateType.confetti: return 'Special';
+
+    case AppAnimateType.bounceIn: case AppAnimateType.bounceInDown:
+    case AppAnimateType.bounceInUp: case AppAnimateType.bounceInLeft:
+    case AppAnimateType.bounceInRight: case AppAnimateType.bounceOut:
+    case AppAnimateType.bounceOutDown: case AppAnimateType.bounceOutUp:
+    case AppAnimateType.bounceInDownLeft: case AppAnimateType.bounceInDownRight:
+    case AppAnimateType.bounceInUpLeft: case AppAnimateType.bounceInUpRight:
+    case AppAnimateType.bounceOutDownLeft: case AppAnimateType.bounceOutDownRight:
+    case AppAnimateType.bounceOutUpLeft: case AppAnimateType.bounceOutUpRight:
+    case AppAnimateType.bounceInFade: case AppAnimateType.bounceOutFade: return 'Bounce';
+
+    case AppAnimateType.elasticIn: case AppAnimateType.elasticOut:
+    case AppAnimateType.elasticInOut: case AppAnimateType.elasticInDown:
+    case AppAnimateType.elasticInUp: case AppAnimateType.elasticInLeft:
+    case AppAnimateType.elasticInRight: case AppAnimateType.elasticOutDown:
+    case AppAnimateType.elasticOutUp: case AppAnimateType.elasticOutRight:
+    case AppAnimateType.elasticOutLeft: case AppAnimateType.elasticInFade:
+    case AppAnimateType.elasticOutFade: case AppAnimateType.elasticBounce: return 'Elastic';
+
+    case AppAnimateType.fadeInScale: case AppAnimateType.fadeInSlide:
+    case AppAnimateType.fadeInRotate: case AppAnimateType.fadeOutScale:
+    case AppAnimateType.fadeOutSlide: case AppAnimateType.fadeOutRotate:
+    case AppAnimateType.fadeInScaleRotate: case AppAnimateType.fadeInSlideScale:
+    case AppAnimateType.fadeInSlideRotate: case AppAnimateType.fadeOutScaleRotate:
+    case AppAnimateType.fadeOutSlideScale: case AppAnimateType.fadeOutSlideRotate:
+    case AppAnimateType.zoomInRotate: case AppAnimateType.zoomOutRotate:
+    case AppAnimateType.scaleInRotate: return 'Combo';
+
+    case AppAnimateType.typewriter: case AppAnimateType.textReveal:
+    case AppAnimateType.marquee: case AppAnimateType.ripple:
+    case AppAnimateType.textWave: case AppAnimateType.textBounce:
+    case AppAnimateType.textFlip: case AppAnimateType.textSpin:
+    case AppAnimateType.letterFade: case AppAnimateType.letterSlide:
+    case AppAnimateType.letterScale: case AppAnimateType.letterRotate:
+    case AppAnimateType.wordFade: case AppAnimateType.wordSlide:
+    case AppAnimateType.wordScale: case AppAnimateType.wordRotate:
+    case AppAnimateType.scramble: case AppAnimateType.glitch: return 'Text';
+
+    case AppAnimateType.revealLeft: case AppAnimateType.revealRight:
+    case AppAnimateType.revealUp: case AppAnimateType.revealDown:
+    case AppAnimateType.shimmerSlide: case AppAnimateType.shimmerWave:
+    case AppAnimateType.shakeX: case AppAnimateType.shakeY:
+    case AppAnimateType.shakeDiagonal: case AppAnimateType.swingX:
+    case AppAnimateType.swingY: case AppAnimateType.swingDiagonal:
+    case AppAnimateType.breathe: case AppAnimateType.float: case AppAnimateType.drift:
+    case AppAnimateType.wobbleFast: case AppAnimateType.wobbleSlow:
+    case AppAnimateType.blinkFast: case AppAnimateType.blinkSlow: return 'Utility';
+
+    case AppAnimateType.loadingDots: case AppAnimateType.skeletonWave: return 'Loader';
+  }
 }

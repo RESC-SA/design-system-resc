@@ -1,4 +1,5 @@
 import 'package:amicons/amicons.dart';
+import 'package:design_system_example/pages/loading_animation_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_design_system/flutter_design_system.dart' as ds;
 
@@ -150,7 +151,7 @@ class HomePage extends StatelessWidget {
         label: 'Loading Animation',
         desc: 'PNG frame animations using flutter_animate',
         color: context.colors.neonPurple,
-        page: const ds.LoadingPage(),
+        page: const LoadingAnimationPage(),
       ),
       _Section(
         icon: Amicons.lucide_sparkles,
