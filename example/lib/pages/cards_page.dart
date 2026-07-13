@@ -88,7 +88,7 @@ class CardsPage extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: Stack(
+              child: const Stack(
                 children: [
                   Positioned(
                     top: 8,
@@ -97,7 +97,7 @@ class CardsPage extends StatelessWidget {
                     bottom: 8,
                     child: ds.GlassContainer(
                       sigma: 6,
-                      child: const Center(child: Text('GlassContainer with backdrop blur', textAlign: TextAlign.center)),
+                      child: Center(child: Text('GlassContainer with backdrop blur', textAlign: TextAlign.center)),
                     ),
                   ),
                 ],
@@ -105,7 +105,7 @@ class CardsPage extends StatelessWidget {
             ),
           ]),
           _section(theme, 'AppStatusBadge (inline)', children: [
-            Wrap(spacing: 8, runSpacing: 8, children: [
+            const Wrap(spacing: 8, runSpacing: 8, children: [
               ds.AppStatusBadge(label: 'Active'),
               ds.AppStatusBadge(label: 'Away'),
               ds.AppStatusBadge(label: 'Busy'),

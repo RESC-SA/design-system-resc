@@ -79,7 +79,6 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final sections = <_Section>[
       _Section(
         icon: Amicons.lucide_box,
@@ -146,6 +145,20 @@ class HomePage extends StatelessWidget {
         color: context.colors.neonCyan,
         page: const NavigationPage(),
       ),
+      _Section(
+        icon: Amicons.lucide_zap,
+        label: 'Loading Animation',
+        desc: 'PNG frame animations using flutter_animate',
+        color: context.colors.neonPurple,
+        page: const ds.LoadingPage(),
+      ),
+      _Section(
+        icon: Amicons.lucide_sparkles,
+        label: '60 Animations',
+        desc: '60 categories — fade, slide, bounce, elastic, text, and more',
+        color: context.colors.neonBlue,
+        page: const ds.AnimatePage(),
+      ),
     ];
 
     return ds.AppScaffold(
@@ -195,7 +208,6 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return ds.AppCard(
       onTap: () => Navigator.push(
           context, MaterialPageRoute(builder: (_) => section.page)),
@@ -217,12 +229,13 @@ class _SectionCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(section.label, style: theme.textTheme.titleLarge),
+                Text(section.label,
+                    style: Theme.of(context).textTheme.titleLarge),
                 ds.AppSpacer.xxl(),
                 Text(section.desc,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: context.colors.textSecondary,
-                    )),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: context.colors.textSecondary,
+                        )),
               ],
             ),
           ),

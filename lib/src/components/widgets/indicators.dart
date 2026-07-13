@@ -211,12 +211,13 @@ class AppLinearProgress extends StatelessWidget {
         ],
         ClipRRect(
           borderRadius: BorderRadius.circular(height / 2),
-          child: Stack(
+          child: SizedBox(
+            width: double.infinity,
+            child: Stack(
             children: [
               // Track
               Container(
                 height: height,
-                width: double.infinity,
                 color: colors.border.withValues(alpha: 0.5),
               ),
               // Fill
@@ -249,6 +250,7 @@ class AppLinearProgress extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ],
     );
   }

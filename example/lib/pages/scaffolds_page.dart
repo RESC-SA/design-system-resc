@@ -158,7 +158,7 @@ class _SliverDemo extends StatelessWidget {
               children: [
                 Text('Flexible Space', style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 8),
-                Text('The app bar collapses as you scroll. This uses CustomScrollView + SliverAppBar.'),
+                const Text('The app bar collapses as you scroll. This uses CustomScrollView + SliverAppBar.'),
                 const SizedBox(height: 24),
               ],
             ),
@@ -279,12 +279,12 @@ class _NestedScrollDemo extends StatelessWidget {
         ),
         ListView(
           padding: const EdgeInsets.all(16),
-          children: [
-            ListTile(leading: Icon(Amicons.lucide_bell), title: const Text('Notifications')),
-            const Divider(),
-            ListTile(leading: Icon(Amicons.lucide_shield_alert), title: const Text('Privacy')),
-            const Divider(),
-            ListTile(leading: Icon(Amicons.lucide_circle_help), title: const Text('Help')),
+          children: const [
+            ListTile(leading: Icon(Amicons.lucide_bell), title: Text('Notifications')),
+            Divider(),
+            ListTile(leading: Icon(Amicons.lucide_shield_alert), title: Text('Privacy')),
+            Divider(),
+            ListTile(leading: Icon(Amicons.lucide_circle_help), title: Text('Help')),
           ],
         ),
       ],

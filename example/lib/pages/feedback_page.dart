@@ -18,23 +18,23 @@ class FeedbackPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ds.AppText(text: 'Basic text with animation', value: 8),
+                  const ds.AppText(text: 'Basic text with animation', value: 8),
                   ds.AppSpacer.sm(),
-                  ds.AppText(
+                  const ds.AppText(
                     text: 'Fade In Animation',
                     value: 8,
                     animationType: ds.AnimationType.fadeIn,
                     animationDuration: 600,
                   ),
                   ds.AppSpacer.sm(),
-                  ds.AppText(
+                  const ds.AppText(
                     text: 'Slide In Animation',
                     value: 8,
                     animationType: ds.AnimationType.slideIn,
                     animationDuration: 600,
                   ),
                   ds.AppSpacer.sm(),
-                  ds.AppText(
+                  const ds.AppText(
                     text: 'Scale In Animation',
                     value: 8,
                     animationType: ds.AnimationType.scaleIn,

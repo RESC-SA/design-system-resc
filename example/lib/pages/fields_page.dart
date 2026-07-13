@@ -68,7 +68,7 @@ class _FieldsPageState extends State<FieldsPage> {
                 hint: 'Small variant',
               ),
               const SizedBox(height: 12),
-              ds.AppTextField(
+              const ds.AppTextField(
                 label: 'Number Only',
                 hint: 'Digits only',
                 type: ds.AppTextFieldXType.number,
@@ -76,7 +76,7 @@ class _FieldsPageState extends State<FieldsPage> {
                 prefixIcon: Icon(Icons.numbers_outlined),
               ),
               const SizedBox(height: 12),
-              ds.AppTextField(
+              const ds.AppTextField(
                 label: 'URL',
                 hint: 'https://example.com',
                 type: ds.AppTextFieldXType.url,
@@ -85,7 +85,7 @@ class _FieldsPageState extends State<FieldsPage> {
                 prefixIcon: Icon(Icons.link_outlined),
               ),
               const SizedBox(height: 12),
-              ds.AppTextField(
+              const ds.AppTextField(
                 label: 'Toggle Switch',
                 hint: 'Tap to toggle',
                 type: ds.AppTextFieldXType.togglebtn,
@@ -150,7 +150,7 @@ class _FieldsPageState extends State<FieldsPage> {
                 value: true,
                 subtitle: 'Uses CupertinoSwitch on iOS',
                 onChanged: (_) {},
-                leading: Icon(Icons.phone_iphone_outlined, size: 22),
+                leading: const Icon(Icons.phone_iphone_outlined, size: 22),
               ),
               const SizedBox(height: 8),
               ds.AppSwitchField.settings(
@@ -197,11 +197,11 @@ class _FieldsPageState extends State<FieldsPage> {
                 label: 'VPN Connection',
                 value: true,
                 subtitle: 'Encrypt all network traffic',
-                leading: Icon(Icons.vpn_lock_outlined, size: 22),
+                leading: const Icon(Icons.vpn_lock_outlined, size: 22),
                 onChanged: (_) {},
               ),
               const SizedBox(height: 8),
-              ds.AppSwitchField(
+              const ds.AppSwitchField(
                 label: 'Disabled',
                 value: true,
                 enabled: false,
@@ -226,7 +226,7 @@ class _FieldsPageState extends State<FieldsPage> {
                 value: _checkboxValue,
                 onChanged: (v) => setState(() => _checkboxValue = v ?? false),
               ),
-              ds.AppCheckboxField(
+              const ds.AppCheckboxField(
                 label: 'Disabled',
                 value: false,
                 enabled: false,
@@ -236,10 +236,10 @@ class _FieldsPageState extends State<FieldsPage> {
             _section(theme, 'AppSegmentedField', children: [
               ds.AppSegmentedField<String>(
                 label: 'Period',
-                segments: {
-                  'Day': const Text('Day'),
-                  'Week': const Text('Week'),
-                  'Month': const Text('Month'),
+                segments: const {
+                  'Day': Text('Day'),
+                  'Week': Text('Week'),
+                  'Month': Text('Month'),
                 },
                 selected: _segmentedValue,
                 onChanged: (v) => setState(() => _segmentedValue = v),

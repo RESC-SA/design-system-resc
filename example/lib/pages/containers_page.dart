@@ -12,11 +12,11 @@ class ContainersPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          ShowcaseSection(
+          const ShowcaseSection(
             title: 'AppContainer',
             subtitle: 'Themed container with optional tap',
             child: ds.AppContainer(
-              child: const Text('Basic container with default padding and surface2 color'),
+              child: Text('Basic container with default padding and surface2 color'),
             ),
           ),
           ds.AppSpacer.md(),
@@ -47,14 +47,14 @@ class ContainersPage extends StatelessWidget {
             ),
           ),
           ds.AppSpacer.md(),
-          ShowcaseSection(
+          const ShowcaseSection(
             title: 'AppDivider',
             subtitle: 'Themed horizontal divider',
             child: Column(
               children: [
-                const Text('Above divider'),
+                Text('Above divider'),
                 ds.AppDivider(),
-                const Text('Below divider'),
+                Text('Below divider'),
               ],
             ),
           ),
@@ -89,13 +89,13 @@ class ContainersPage extends StatelessWidget {
             title: 'AppStatusBadge',
             subtitle: 'Colored pill badges for status',
             child: Wrap(spacing: 8, runSpacing: 8, children: [
-              ds.AppStatusBadge(label: 'Online'),
-              ds.AppStatusBadge(label: 'Offline'),
-              ds.AppStatusBadge(label: 'Warning'),
-              ds.AppStatusBadge(label: 'Error'),
-              ds.AppStatusBadge(label: 'Info'),
+              const ds.AppStatusBadge(label: 'Online'),
+              const ds.AppStatusBadge(label: 'Offline'),
+              const ds.AppStatusBadge(label: 'Warning'),
+              const ds.AppStatusBadge(label: 'Error'),
+              const ds.AppStatusBadge(label: 'Info'),
               ds.AppStatusBadge(label: 'Custom', customColor: context.colors.neonPurple),
-              ds.AppStatusBadge(label: 'With Icon', icon: Amicons.lucide_star),
+              const ds.AppStatusBadge(label: 'With Icon', icon: Amicons.lucide_star),
               ds.AppStatusBadge.online('Active'),
               ds.AppStatusBadge.offline('Away'),
               ds.AppStatusBadge.warning('Pending'),
@@ -103,12 +103,12 @@ class ContainersPage extends StatelessWidget {
             ]),
           ),
           ds.AppSpacer.md(),
-          ShowcaseSection(
+          const ShowcaseSection(
             title: 'AppGlassPanel',
             subtitle: 'Glassmorphism panel with blur',
             child: ds.AppGlassPanel(
               height: 120,
-              child: const Center(child: Text('Frosted glass panel with backdrop blur')),
+              child: Center(child: Text('Frosted glass panel with backdrop blur')),
             ),
           ),
         ],

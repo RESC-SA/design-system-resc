@@ -37,7 +37,7 @@ class _ListsPageState extends State<ListsPage> {
             ds.AppListItem(
               title: 'John Doe',
               subtitle: 'Online',
-              leading: CircleAvatar(child: Icon(Amicons.lucide_user)),
+              leading: const CircleAvatar(child: Icon(Amicons.lucide_user)),
               trailing: Icon(Amicons.lucide_chevron_right,
                   size: 18, color: context.colors.textDim),
               onTap: () {},
@@ -55,7 +55,7 @@ class _ListsPageState extends State<ListsPage> {
               leading:
                   Icon(Amicons.lucide_bell, color: context.colors.neonOrange),
               subtitle: '3 new notifications',
-              trailing: ds.AppBadge(count: 3, child: const SizedBox()),
+              trailing: const ds.AppBadge(count: 3, child: SizedBox()),
               onTap: () {},
               showDivider: true,
             ),
