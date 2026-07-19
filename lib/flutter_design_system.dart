@@ -4,9 +4,18 @@ library flutter_design_system;
 
 // Assets
 export 'generated/assets.dart';
+// Component exports — ScreenBackgroundAnimated
+export 'src/components/ScreenBackgroundAnimated/screen_background_animated.dart';
+export 'src/components/animate/animate_ext.dart';
+export 'src/components/animate/animate_page.dart';
+// Animation system — 60 categories
+export 'src/components/animate/animate_types.dart';
+export 'src/components/animate/app_animate.dart';
 export 'src/components/loading/pages/loading_page.dart';
 // Component exports — loading
 export 'src/components/loading/widgets/png_loading.dart';
+export 'src/components/page/animated_liquid_border.dart';
+export 'src/components/page/background-mono_liqued.dart';
 export 'src/components/page/bottom_nav_bar.dart';
 // Component exports — page
 export 'src/components/page/containers.dart';
@@ -41,11 +50,6 @@ export 'src/components/widgets/text.dart';
 export 'src/components/widgets/text_direction_extension.dart';
 export 'src/components/widgets/text_field.dart';
 export 'src/components/widgets/toggle_button.dart';
-// Animation system — 60 categories
-export 'src/components/animate/animate_types.dart';
-export 'src/components/animate/app_animate.dart';
-export 'src/components/animate/animate_ext.dart';
-export 'src/components/animate/animate_page.dart';
 // Pkg Icons
 export 'src/pkg-icons/widgets/widgets.dart';
 // Routing

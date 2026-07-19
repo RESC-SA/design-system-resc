@@ -1,5 +1,8 @@
 import 'package:amicons/amicons.dart';
+import 'package:design_system_example/pages/animated_liquid_border_page.dart';
+import 'package:design_system_example/pages/liquid_mono_background_page.dart';
 import 'package:design_system_example/pages/loading_animation_page.dart';
+import 'package:design_system_example/pages/screen_background_animated_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_design_system/flutter_design_system.dart' as ds;
 
@@ -152,6 +155,27 @@ class HomePage extends StatelessWidget {
         desc: 'PNG frame animations using flutter_animate',
         color: context.colors.neonPurple,
         page: const LoadingAnimationPage(),
+      ),
+      _Section(
+        icon: Amicons.lucide_waves,
+        label: 'Animated Background',
+        desc: 'Sonar pulse rings, dot variants, and scattered field effects',
+        color: context.colors.neonCyan,
+        page: const ScreenBackgroundAnimatedPage(),
+      ),
+      _Section(
+        icon: Amicons.lucide_droplets,
+        label: 'Liquid Mono Background',
+        desc: 'Monochromatic liquid animation with soft blending',
+        color: context.colors.neonPurple,
+        page: const LiquidMonoBackgroundPage(),
+      ),
+      _Section(
+        icon: Amicons.lucide_hexagon,
+        label: 'Animated Liquid Border',
+        desc: 'Metallic gradient border with liquid animation',
+        color: context.colors.neonCyan,
+        page: const AnimatedLiquidBorderPage(),
       ),
       _Section(
         icon: Amicons.lucide_sparkles,
