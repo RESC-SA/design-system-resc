@@ -180,7 +180,7 @@ class HomePage extends StatelessWidget {
       _Section(
         icon: Amicons.lucide_sparkles,
         label: '60 Animations',
-        desc: '60 categories — fade, slide, bounce, elastic, text, and more',
+        desc: '60 categories — fade, slide, bounce, elastic, text, and more', 
         color: context.colors.neonBlue,
         page: const ds.AnimatePage(),
       ),
