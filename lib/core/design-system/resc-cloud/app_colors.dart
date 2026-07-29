@@ -149,8 +149,9 @@ class AppColors {
 extension AppColorsExtension on BuildContext {
   Color get accentColor => AppColors.accent;
 
-  Color get borderColor => borderSubtle;
+  Color get blackText => Colors.black;
 
+  Color get borderColor => borderSubtle;
   Color get borderSubtle => isDark ? AppColors.darkNeutral40 : AppColors.border;
   Color get brandSoft => primaryContainerColor;
   // ── Component helpers (legacy) ────────────────────────────────────────
