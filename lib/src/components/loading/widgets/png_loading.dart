@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../theme/theme_extensions.dart';
 import '../../../../generated/assets.dart';
+import '../../../theme/theme_extensions.dart';
 import '../../animate/animate_types.dart';
 import '../../animate/app_animate.dart';
 
@@ -38,6 +38,45 @@ class PngLoading extends StatefulWidget {
 
   @override
   State<PngLoading> createState() => _PngLoadingState();
+}
+
+/// Controller for [PngLoadingV2] — manages animation config and playback state.
+class PngLoadingController extends ChangeNotifier {
+  bool autoplay;
+  int loopCount;
+  AppAnimateType animationType;
+  String? imagePath;
+  double size;
+  BoxDecoration? decoration;
+
+  int _resetKey = 0;
+  PngLoadingController({
+    this.autoplay = true,
+    this.loopCount = 0,
+    this.animationType = AppAnimateType.pulse,
+    this.imagePath,
+    this.size = 200,
+    this.decoration,
+  });
+
+  int get resetKey => _resetKey;
+
+  void play() {
+    autoplay = true;
+    _resetKey++;
+    notifyListeners();
+  }
+
+  void restart() {
+    _resetKey++;
+    notifyListeners();
+  }
+
+  void stop() {
+    autoplay = false;
+    _resetKey++;
+    notifyListeners();
+  }
 }
 
 /// A simplified two-frame loading widget that alternates between dark and light images.
@@ -140,6 +179,49 @@ class PngLoadingPulse extends StatefulWidget {
   State<PngLoadingPulse> createState() => _PngLoadingPulseState();
 }
 
+/// Enhanced loading widget that uses the 200+ animation system via [AppAnimate].
+/// Driven by a [PngLoadingController] for configurable playback.
+class PngLoadingV2 extends StatelessWidget {
+  final PngLoadingController controller;
+
+  const PngLoadingV2({super.key, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final defaultDecoration = BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: colors.surface,
+        );
+
+        return SizedBox(
+          width: controller.size,
+          height: controller.size,
+          child: Container(
+            decoration: controller.decoration ?? defaultDecoration,
+            child: KeyedSubtree(
+              key: ValueKey(controller.resetKey),
+              child: AppAnimate(
+                type: controller.animationType,
+                autoplay: controller.autoplay,
+                loopCount: controller.loopCount,
+                child: Image.asset(
+                  controller.imagePath ?? Assets.imageRescLigh,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _PngLoadingFadeState extends State<PngLoadingFade>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
@@ -151,7 +233,7 @@ class _PngLoadingFadeState extends State<PngLoadingFade>
 
     final defaultDecoration = BoxDecoration(
       borderRadius: BorderRadius.circular(8),
-      color: colors.surface,
+      //color: colors.surface,
     );
 
     return SizedBox(
@@ -306,87 +388,5 @@ class _PngLoadingState extends State<PngLoading>
         }
       }
     });
-  }
-}
-
-/// Controller for [PngLoadingV2] — manages animation config and playback state.
-class PngLoadingController extends ChangeNotifier {
-  bool autoplay;
-  int loopCount;
-  AppAnimateType animationType;
-  String? imagePath;
-  double size;
-  BoxDecoration? decoration;
-
-  int _resetKey = 0;
-  int get resetKey => _resetKey;
-
-  PngLoadingController({
-    this.autoplay = true,
-    this.loopCount = 0,
-    this.animationType = AppAnimateType.pulse,
-    this.imagePath,
-    this.size = 200,
-    this.decoration,
-  });
-
-  void play() {
-    autoplay = true;
-    _resetKey++;
-    notifyListeners();
-  }
-
-  void stop() {
-    autoplay = false;
-    _resetKey++;
-    notifyListeners();
-  }
-
-  void restart() {
-    _resetKey++;
-    notifyListeners();
-  }
-}
-
-/// Enhanced loading widget that uses the 200+ animation system via [AppAnimate].
-/// Driven by a [PngLoadingController] for configurable playback.
-class PngLoadingV2 extends StatelessWidget {
-  final PngLoadingController controller;
-
-  const PngLoadingV2({super.key, required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    return ListenableBuilder(
-      listenable: controller,
-      builder: (context, _) {
-        final defaultDecoration = BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: colors.surface,
-        );
-
-        return SizedBox(
-          width: controller.size,
-          height: controller.size,
-          child: Container(
-            decoration: controller.decoration ?? defaultDecoration,
-            child: KeyedSubtree(
-              key: ValueKey(controller.resetKey),
-              child: AppAnimate(
-                type: controller.animationType,
-                autoplay: controller.autoplay,
-                loopCount: controller.loopCount,
-                child: Image.asset(
-                  controller.imagePath ?? Assets.imageRescLigh,
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
   }
 }
