@@ -20,6 +20,43 @@ class DataPreviewCardPage extends StatelessWidget {
               lottieWidget: _buildMockLottie(Icons.trending_up),
             ),
           ]),
+          _section(context, 'Card with Status', children: [
+            ds.DataPreviewCard(
+              title: 'Server Status',
+              value: 'Operational',
+              valueLabel: 'Status',
+              status: 'Online',
+              statusColor: Colors.green,
+              lottieTitle: 'Health',
+              lottieWidget: _buildMockLottie(Icons.check_circle),
+            ),
+          ]),
+          _section(context, 'Card with Description', children: [
+            ds.DataPreviewCard(
+              title: 'Storage Usage',
+              value: '78%',
+              valueLabel: 'Used',
+              status: 'Warning',
+              statusColor: Colors.orange,
+              description:
+                  'Your storage is almost full. Consider upgrading your plan.',
+              lottieTitle: 'Space',
+              lottieWidget: _buildMockLottie(Icons.storage),
+            ),
+          ]),
+          _section(context, 'Card with Status and Description', children: [
+            ds.DataPreviewCard(
+              title: 'API Requests',
+              value: '98.5%',
+              valueLabel: 'Success Rate',
+              status: 'Excellent',
+              statusColor: Colors.green,
+              description:
+                  'All systems are performing optimally with high availability.',
+              lottieTitle: 'Performance',
+              lottieWidget: _buildMockLottie(Icons.speed),
+            ),
+          ]),
           _section(context, 'Card with Custom Styling', children: [
             ds.DataPreviewCard(
               title: 'Active Users',
@@ -98,6 +135,31 @@ class DataPreviewCardPage extends StatelessWidget {
               icon: Icon(Icons.storage, color: Colors.purple),
             ),
           ]),
+          _section(context, 'Compact Variant with Status', children: [
+            const ds.DataPreviewCardCompact(
+              title: 'CPU Usage',
+              value: '45%',
+              status: 'Normal',
+              statusColor: Colors.green,
+              icon: Icon(Icons.memory, color: Colors.blue),
+            ),
+            const SizedBox(height: 8),
+            const ds.DataPreviewCardCompact(
+              title: 'Memory',
+              value: '82%',
+              status: 'High',
+              statusColor: Colors.orange,
+              icon: Icon(Icons.storage, color: Colors.orange),
+            ),
+            const SizedBox(height: 8),
+            const ds.DataPreviewCardCompact(
+              title: 'Disk',
+              value: '95%',
+              status: 'Critical',
+              statusColor: Colors.red,
+              icon: Icon(Icons.sd_card, color: Colors.red),
+            ),
+          ]),
           _section(context, 'Card Without Lottie', children: [
             ds.DataPreviewCard(
               title: 'Server Status',
@@ -124,6 +186,30 @@ class DataPreviewCardPage extends StatelessWidget {
               lottieWidget: _buildMockLottie(Icons.thermostat),
               borderRadius: 24,
               padding: const EdgeInsets.all(20),
+              status: 'Normal',
+              description: 'Temperature monitoring system',
+            ),
+          ]),
+          _section(context, 'Card with Leading Widget', children: [
+            ds.DataPreviewCard(
+              title: 'Network Speed',
+              value: '1.2 Gbps',
+              valueLabel: 'Current',
+              status: 'Connected',
+              leadingWidget: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.network_check,
+                  color: Colors.blue,
+                  size: 28,
+                ),
+              ),
+              lottieTitle: 'Speed',
+              lottieWidget: _buildMockLottie(Icons.speed),
             ),
           ]),
           _section(context, 'Financial Data Example', children: [

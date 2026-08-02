@@ -1,24 +1,39 @@
 import 'package:flutter/material.dart';
-////
+
 ///
-/// as example for use this widget:
-///DataPreviewCard(
-//   title: 'Temperature',
-//   value: '24°C',
-//   valueLabel: 'Room',
-//   lottieTitle: 'Climate',
-//   lottieWidget: _buildMockLottie(Icons.thermostat),
-//   borderRadius: 24,
-//   padding: const EdgeInsets.all(20),
-// ),
+/// Example usage:
+/// DataPreviewCard(
+///   title: 'Server Status',
+///   value: 'Operational',
+///   valueLabel: 'Status',
+///   status: 'Online',
+///   statusColor: Colors.green,
+///   description: 'All systems are running normally',
+///   lottieTitle: 'Health',
+///   lottieWidget: Lottie.asset('assets/health.json'),
+///   leadingWidget: Icon(Icons.server, color: Colors.blue),
+/// );
 ///
-///
-///
-///
-///
-///
-///
+
 class DataPreviewCard extends StatelessWidget {
+  final String title;
+
+  final String value;
+  final String? lottieTitle;
+  final Widget? lottieWidget;
+  final Color? backgroundColor;
+  final TextStyle? titleStyle;
+  final TextStyle? valueStyle;
+  final TextStyle? lottieTitleStyle;
+  final EdgeInsets padding;
+  final double borderRadius;
+  final double elevation;
+  final String valueLabel;
+  final String? status;
+  final Color? statusColor;
+  final String? description;
+  final TextStyle? descriptionStyle;
+  final Widget? leadingWidget;
   const DataPreviewCard({
     super.key,
     required this.title,
@@ -33,20 +48,12 @@ class DataPreviewCard extends StatelessWidget {
     this.borderRadius = 16,
     this.elevation = 2,
     this.valueLabel = 'Value',
+    this.status,
+    this.statusColor,
+    this.description,
+    this.descriptionStyle,
+    this.leadingWidget,
   });
-
-  final String title;
-  final String value;
-  final String? lottieTitle;
-  final Widget? lottieWidget;
-  final Color? backgroundColor;
-  final TextStyle? titleStyle;
-  final TextStyle? valueStyle;
-  final TextStyle? lottieTitleStyle;
-  final EdgeInsets padding;
-  final double borderRadius;
-  final double elevation;
-  final String valueLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -68,20 +75,70 @@ class DataPreviewCard extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Leading widget
+          if (leadingWidget != null) ...[
+            leadingWidget!,
+            const SizedBox(width: 12),
+          ],
           // Left side: Title and Value
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Status container
+                // if (status != null) ...[
+                //   Container(
+                //     padding:
+                //         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                //     decoration: BoxDecoration(
+                //       color: statusColor ??
+                //           theme.colorScheme.primary.withValues(alpha: 0.1),
+                //       borderRadius: BorderRadius.circular(6),
+                //     ),
+                //     child: Text(
+                //       status!,
+                //       style: theme.textTheme.bodySmall?.copyWith(
+                //         color: statusColor ?? theme.colorScheme.primary,
+                //         fontWeight: FontWeight.w600,
+                //         fontSize: 11,
+                //       ),
+                //     ),
+                //   ),
+                //   const SizedBox(height: 8),
+                // ],
                 // Title
-                Text(
-                  title,
-                  style: titleStyle ??
-                      theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurface,
+                Row(
+                  children: [
+                    Text(
+                      title,
+                      style: titleStyle ??
+                          theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                    ),
+                    if (status != null) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusColor ??
+                              theme.colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          status!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: statusColor ?? theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 11,
+                          ),
+                        ),
                       ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 8),
                 // Value label and value
@@ -92,7 +149,8 @@ class DataPreviewCard extends StatelessWidget {
                     Text(
                       '$valueLabel: ',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                     Expanded(
@@ -108,6 +166,20 @@ class DataPreviewCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                // Description
+                if (description != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    description!,
+                    style: descriptionStyle ??
+                        theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.6),
+                        ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ],
             ),
           ),
@@ -125,7 +197,8 @@ class DataPreviewCard extends StatelessWidget {
                       style: lottieTitleStyle ??
                           theme.textTheme.bodySmall?.copyWith(
                             fontWeight: FontWeight.w500,
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.7),
                           ),
                       textAlign: TextAlign.center,
                       maxLines: 2,
@@ -149,6 +222,19 @@ class DataPreviewCard extends StatelessWidget {
 }
 
 class DataPreviewCardCompact extends StatelessWidget {
+  final String title;
+
+  final String value;
+  final Widget? lottieWidget;
+  final Color? backgroundColor;
+  final TextStyle? titleStyle;
+  final TextStyle? valueStyle;
+  final EdgeInsets padding;
+  final double borderRadius;
+  final Widget? icon;
+  final Widget? leadingWidget;
+  final String? status;
+  final Color? statusColor;
   const DataPreviewCardCompact({
     super.key,
     required this.title,
@@ -160,17 +246,10 @@ class DataPreviewCardCompact extends StatelessWidget {
     this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     this.borderRadius = 12,
     this.icon,
+    this.leadingWidget,
+    this.status,
+    this.statusColor,
   });
-
-  final String title;
-  final String value;
-  final Widget? lottieWidget;
-  final Color? backgroundColor;
-  final TextStyle? titleStyle;
-  final TextStyle? valueStyle;
-  final EdgeInsets padding;
-  final double borderRadius;
-  final Widget? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -188,8 +267,11 @@ class DataPreviewCardCompact extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Icon or Lottie
-          if (icon != null || lottieWidget != null) ...[
+          // Leading widget, Icon or Lottie
+          if (leadingWidget != null) ...[
+            leadingWidget!,
+            const SizedBox(width: 12),
+          ] else if (icon != null || lottieWidget != null) ...[
             SizedBox(
               height: 40,
               width: 40,
@@ -203,12 +285,39 @@ class DataPreviewCardCompact extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  title,
-                  style: titleStyle ??
-                      theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                Row(
+                  children: [
+                    Text(
+                      title,
+                      style: titleStyle ??
+                          theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.7),
+                          ),
+                    ),
+                    if (status != null) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color:
+                              statusColor ?? Colors.grey.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          status!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: statusColor ??
+                                theme.colorScheme.onSurface
+                                    .withValues(alpha: 0.6),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
