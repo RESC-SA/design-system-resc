@@ -1,5 +1,6 @@
 import 'package:amicons/amicons.dart';
 import 'package:design_system_example/pages/animated_liquid_border_page.dart';
+import 'package:design_system_example/pages/data_preview_card_page.dart';
 import 'package:design_system_example/pages/liquid_mono_background_page.dart';
 import 'package:design_system_example/pages/loading_animation_page.dart';
 import 'package:design_system_example/pages/screen_background_animated_page.dart';
@@ -178,9 +179,16 @@ class HomePage extends StatelessWidget {
         page: const AnimatedLiquidBorderPage(),
       ),
       _Section(
+        icon: Amicons.lucide_layout_template,
+        label: 'Data Preview Card',
+        desc: 'Data display cards with value, title, and Lottie animation',
+        color: context.colors.neonGreen,
+        page: const DataPreviewCardPage(),
+      ),
+      _Section(
         icon: Amicons.lucide_sparkles,
         label: '60 Animations',
-        desc: '60 categories — fade, slide, bounce, elastic, text, and more', 
+        desc: '60 categories — fade, slide, bounce, elastic, text, and more',
         color: context.colors.neonBlue,
         page: const ds.AnimatePage(),
       ),

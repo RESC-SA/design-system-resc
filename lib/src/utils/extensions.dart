@@ -335,7 +335,7 @@ extension PlatformX on BuildContext {
   bool get isIOS => Theme.of(this).platform == TargetPlatform.iOS;
   bool get isLinux => Theme.of(this).platform == TargetPlatform.linux;
   bool get isMacOS => Theme.of(this).platform == TargetPlatform.macOS;
-  bool get isMobile =>
+  bool get isMobilePlatform =>
       Theme.of(this).platform == TargetPlatform.android ||
       Theme.of(this).platform == TargetPlatform.iOS;
   bool get isWeb => kIsWeb;

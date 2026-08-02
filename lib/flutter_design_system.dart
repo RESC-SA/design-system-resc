@@ -30,6 +30,7 @@ export 'src/components/widgets/buttons-sample.dart' hide AppIconButton;
 // Component exports — widgets
 export 'src/components/widgets/buttons.dart';
 export 'src/components/widgets/checkbox_field.dart';
+export 'src/components/widgets/data_preview_card.dart';
 export 'src/components/widgets/dropdown_field.dart';
 export 'src/components/widgets/flip_card.dart';
 export 'src/components/widgets/glow_ring.dart';
