@@ -4,6 +4,7 @@ import 'package:design_system_example/pages/data_preview_card_page.dart';
 import 'package:design_system_example/pages/liquid_mono_background_page.dart';
 import 'package:design_system_example/pages/loading_animation_page.dart';
 import 'package:design_system_example/pages/screen_background_animated_page.dart';
+import 'package:design_system_example/pages/thermometer_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_design_system/flutter_design_system.dart' as ds;
 
@@ -184,6 +185,13 @@ class HomePage extends StatelessWidget {
         desc: 'Data display cards with value, title, and Lottie animation',
         color: context.colors.neonGreen,
         page: const DataPreviewCardPage(),
+      ),
+      _Section(
+        icon: Amicons.lucide_thermometer,
+        label: 'Thermometer Widget',
+        desc: 'Interactive temperature display with F and C scales',
+        color: context.colors.neonOrange,
+        page: const ThermometerPage(),
       ),
       _Section(
         icon: Amicons.lucide_sparkles,

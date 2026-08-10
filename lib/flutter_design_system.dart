@@ -50,6 +50,7 @@ export 'src/components/widgets/switch_field.dart';
 export 'src/components/widgets/text.dart';
 export 'src/components/widgets/text_direction_extension.dart';
 export 'src/components/widgets/text_field.dart';
+export 'src/components/widgets/thermometer_widget.dart';
 export 'src/components/widgets/toggle_button.dart';
 // Pkg Icons
 export 'src/pkg-icons/widgets/widgets.dart';
