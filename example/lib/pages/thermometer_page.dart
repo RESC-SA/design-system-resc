@@ -71,6 +71,37 @@ class _ThermometerPageState extends State<ThermometerPage> {
   ds.ThermometerReadoutStyle _readoutStyle =
       ds.ThermometerReadoutStyle.circularWheel;
 
+  // Spacing Configuration (المسافة خارج التصميم للأعلى والأسفل)
+  double _topWidgetSpacing = 12.0;
+  double _humiditySpacing = 14.0;
+
+  // Danger Alert System (نظام الإنذار والهزاز والصوت عند الحرارة الخطرة)
+  bool _enableDangerAlert = true;
+  double _criticalMaxCelsius = 39.0;
+
+  // Humidity Feature (الرطوبة)
+  double _humidity = 58.0;
+  bool _showHumidity = true;
+  ds.ThermometerHumidityPosition _humidityPosition =
+      ds.ThermometerHumidityPosition.bottomPill;
+
+  // Custom Colors Theme Switch
+  bool _useCustomPalette = false;
+
+  // Custom Top Widget selection (0: Sun Default, 1: Dynamic State Badge/Animation, 2: Custom Lottie/SVG style)
+  int _topWidgetType = 1;
+
+  // Custom Temperature Equation / Formatter (0: Default, 1: Celsius, 2: Fahrenheit, 3: Kelvin, 4: With State)
+  int _formulaType = 0;
+
+  // Thermal Thresholds
+  final ds.ThermometerThresholds _thresholds = const ds.ThermometerThresholds(
+    cool: 18.0,
+    normal: 27.0,
+    warm: 36.0,
+    hot: 45.0,
+  );
+
   // Live Hardware Sensor Simulation
   bool _isLiveSensorStreaming = false;
   bool _autoThemeBasedOnSensor = true;
@@ -92,20 +123,119 @@ class _ThermometerPageState extends State<ThermometerPage> {
       _sensorTimer =
           Timer.periodic(const Duration(milliseconds: 1400), (timer) {
         final delta = (math.Random().nextDouble() * 4.0) - 1.8;
+        final deltaHum = (math.Random().nextDouble() * 5.0) - 2.5;
         final newTemp = (_celsius + delta).clamp(-15.0, 48.0);
+        final newHum = (_humidity + deltaHum).clamp(15.0, 95.0);
+
         setState(() {
           _celsius = double.parse(newTemp.toStringAsFixed(1));
+          _humidity = double.parse(newHum.toStringAsFixed(0));
           if (_autoThemeBasedOnSensor) {
-            _selectedTheme = ds.ThermometerFluidTheme.fromCelsius(_celsius);
+            _selectedTheme = ds.ThermometerFluidTheme.fromCelsius(
+              _celsius,
+              _thresholds,
+            );
           }
         });
       });
     }
   }
 
+  String Function(double celsius)? get _currentValueFormatter {
+    return switch (_formulaType) {
+      1 => (c) => '${c.toStringAsFixed(1)} °C',
+      2 => (c) => '${(c * 1.8 + 32).toStringAsFixed(1)} °F',
+      3 => (c) => '${(c + 273.15).toStringAsFixed(1)} K',
+      4 => (c) {
+          final state = _thresholds.getState(c);
+          final stateName = switch (state) {
+            ds.ThermometerTemperatureState.cool => '❄️ COOL',
+            ds.ThermometerTemperatureState.normal => '🌿 NORMAL',
+            ds.ThermometerTemperatureState.warm => '☀️ WARM',
+            ds.ThermometerTemperatureState.hot => '🔥 HOT',
+          };
+          return '${c.toStringAsFixed(0)}° $stateName';
+        },
+      _ => null, // default
+    };
+  }
+
+  Widget _buildDynamicTopWidget(
+    BuildContext context,
+    double celsius,
+    ds.ThermometerTemperatureState state,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final (icon, color, label) = switch (state) {
+      ds.ThermometerTemperatureState.cool => (
+          Icons.ac_unit_rounded,
+          const Color(0xFF00B0FF),
+          'بارد (Cool)'
+        ),
+      ds.ThermometerTemperatureState.normal => (
+          Icons.eco_rounded,
+          const Color(0xFF00E676),
+          'معتدل (Normal)'
+        ),
+      ds.ThermometerTemperatureState.warm => (
+          Icons.wb_sunny_rounded,
+          const Color(0xFFFF9100),
+          'دافئ (Warm)'
+        ),
+      ds.ThermometerTemperatureState.hot => (
+          Icons.local_fire_department_rounded,
+          const Color(0xFFFF2A2A),
+          'حار (Hot)'
+        ),
+    };
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF222834) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.7), width: 1.8),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: isDark ? 0.4 : 0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 17),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final fahrenheit = _celsius * 9 / 5 + 32;
+
+    final customColors = _useCustomPalette
+        ? const ds.ThermometerColors(
+            fluidPrimary: Color(0xFF8B5CF6), // Purple fluid
+            fluidDeep: Color(0xFF5B21B6),
+            fluidHighlight: Color(0xFFC4B5FD),
+            majorText: Color(0xFF8B5CF6),
+            majorTick: Color(0xFF8B5CF6),
+            unitHeader: Color(0xFF8B5CF6),
+          )
+        : null;
 
     return ds.AppScaffold(
       title: 'Thermometer 100% Realistic',
@@ -187,8 +317,8 @@ class _ThermometerPageState extends State<ThermometerPage> {
                       const SizedBox(height: 2),
                       Text(
                         _isLiveSensorStreaming
-                            ? 'بث مباشر للحرارة من الحساس (ESP32 / BLE Sensor)'
-                            : 'تفعيل المحاكاة لاستقبال قيم درجات الحرارة تلقائياً',
+                            ? 'بث مباشر للحرارة والرطوبة من الحساس (ESP32 / BLE Sensor)'
+                            : 'تفعيل المحاكاة لاستقبال قيم درجات الحرارة والرطوبة تلقائياً',
                         style: TextStyle(
                           fontSize: 11,
                           color: Theme.of(context)
@@ -211,326 +341,934 @@ class _ThermometerPageState extends State<ThermometerPage> {
             ),
           ),
 
-          _section(context, 'Interactive Glass Thermometer', children: [
-            // Center Thermometer Widget with 3D Wheel Readout
-            Center(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF1B1F27)
-                      : const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? const Color(0xFF2C3240)
-                        : const Color(0xFFE2E8F0),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: ds.ThermometerWidget(
-                  celsius: _celsius,
-                  showCelsius: _showCelsius,
-                  showFahrenheit: _showFahrenheit,
-                  showMinorLabels: _showMinorLabels,
-                  fluidTheme: _selectedTheme,
-                  readoutStyle: _readoutStyle,
-                  showSunIcon: false,
-                  width: 270,
-                  height: 460,
-                  interactive:
-                      !_isLiveSensorStreaming, // Read-only during live sensor mode
-                  onChanged: (newCelsius) {
-                    setState(() {
-                      _celsius = newCelsius;
-                    });
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Center(
-              child: Text(
-                _isLiveSensorStreaming
-                    ? '⚡ قراءات حية متدفقة من الحساس الخارجي مع حركة انسيابية'
-                    : '💡 يمكنك اللمس والسحب المباشر على مقياس الحرارة لتعديل القيمة',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: _isLiveSensorStreaming
-                      ? const Color(0xFF10B981)
-                      : Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Readout Badge
-            Center(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                decoration: BoxDecoration(
-                  color: _selectedTheme.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(
-                    color: _selectedTheme.primary.withValues(alpha: 0.4),
-                    width: 1.5,
-                  ),
-                ),
-                child: Text(
-                  _showCelsius && _showFahrenheit
-                      ? '${_celsius.toStringAsFixed(1)}°C  /  ${fahrenheit.toStringAsFixed(1)}°F'
-                      : _showCelsius
-                          ? '${_celsius.toStringAsFixed(1)}°C'
-                          : '${fahrenheit.toStringAsFixed(1)}°F',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: _selectedTheme.primary,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Slider control (only when not streaming)
-            if (!_isLiveSensorStreaming)
-              Slider(
-                value: _celsius,
-                min: -30,
-                max: 50,
-                divisions: 160,
-                label: '${_celsius.toStringAsFixed(1)}°C',
-                activeColor: _selectedTheme.primary,
-                onChanged: (value) {
-                  setState(() {
-                    _celsius = value;
-                  });
-                },
-              ),
-            const SizedBox(height: 12),
-
-            // Readout Style Selector (نمط عرض البكرة الدائرية)
+          // Danger Alert Indicator Banner (عند الوصول لحد الخطر)
+          if (_celsius >= _criticalMaxCelsius && _enableDangerAlert)
             Container(
-              padding: const EdgeInsets.all(14),
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF232731)
-                    : const Color(0xFFF8FAFC),
+                color: const Color(0xFFFF1744).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF333A48)
-                      : const Color(0xFFE2E8F0),
-                ),
+                border: Border.all(color: const Color(0xFFFF1744), width: 1.5),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: const Row(
                 children: [
-                  const Row(
+                  Icon(Icons.warning_amber_rounded,
+                      color: Color(0xFFFF1744), size: 24),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      '⚠️ تحذير: درجة الحرارة تجاوزت حد الخطر! (الهزاز والصوت يعملان تلقائياً)',
+                      style: TextStyle(
+                        color: Color(0xFFFF1744),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          _section(
+              context, 'Glass Thermometer & Hygrometer (بدون أي حاوية ثابتة)',
+              children: [
+                // Center Thermometer Widget with clean transparent presentation
+                Center(
+                  child: ds.ThermometerWidget(
+                    celsius: _celsius,
+                    humidity: _humidity,
+                    showHumidity: _showHumidity,
+                    humidityPosition: _humidityPosition,
+                    topWidgetSpacing: _topWidgetSpacing,
+                    humiditySpacing: _humiditySpacing,
+                    criticalMaxCelsius:
+                        _enableDangerAlert ? _criticalMaxCelsius : null,
+                    enableAlertVibration: true,
+                    enableAlertSound: true,
+                    colors: customColors,
+                    showCelsius: _showCelsius,
+                    showFahrenheit: _showFahrenheit,
+                    showMinorLabels: _showMinorLabels,
+                    fluidTheme: _selectedTheme,
+                    readoutStyle: _readoutStyle,
+                    thresholds: _thresholds,
+                    valueFormatter: _currentValueFormatter,
+                    showSunIcon: true,
+                    topWidgetBuilder:
+                        _topWidgetType == 1 ? _buildDynamicTopWidget : null,
+                    topWidget: _topWidgetType == 2
+                        ? Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF10B981),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.auto_awesome_rounded,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          )
+                        : null,
+                    width: 270,
+                    height: 480,
+                    interactive:
+                        !_isLiveSensorStreaming, // Read-only during live sensor mode
+                    onChanged: (newCelsius) {
+                      setState(() {
+                        _celsius = newCelsius;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Center(
+                  child: Text(
+                    _isLiveSensorStreaming
+                        ? '⚡ قراءات حية متدفقة للحرارة والرطوبة من الحساس الخارجي'
+                        : '💡 يمكنك اللمس والسحب المباشر على مقياس الحرارة لتعديل القيمة',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _isLiveSensorStreaming
+                          ? const Color(0xFF10B981)
+                          : Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Readout Badge
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: _selectedTheme.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(
+                        color: _selectedTheme.primary.withValues(alpha: 0.4),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Text(
+                      _showCelsius && _showFahrenheit
+                          ? '${_celsius.toStringAsFixed(1)}°C  /  ${fahrenheit.toStringAsFixed(1)}°F'
+                          : _showCelsius
+                              ? '${_celsius.toStringAsFixed(1)}°C'
+                              : '${fahrenheit.toStringAsFixed(1)}°F',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: _selectedTheme.primary,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Sliders control (only when not streaming)
+                if (!_isLiveSensorStreaming) ...[
+                  // Temperature Slider
+                  Row(
                     children: [
-                      Icon(Icons.style_rounded,
-                          size: 18, color: Colors.blueAccent),
-                      SizedBox(width: 8),
-                      Text(
-                        'شكل ونمط عرض القيمة الحالية (Readout Style)',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 13.5),
+                      const Icon(Icons.thermostat_rounded,
+                          size: 18, color: Colors.redAccent),
+                      const SizedBox(width: 6),
+                      const Text('الحرارة: ',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text('${_celsius.toStringAsFixed(1)}°C',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.redAccent)),
+                    ],
+                  ),
+                  Slider(
+                    value: _celsius,
+                    min: -30,
+                    max: 50,
+                    divisions: 160,
+                    label: '${_celsius.toStringAsFixed(1)}°C',
+                    activeColor: _selectedTheme.primary,
+                    onChanged: (value) {
+                      setState(() {
+                        _celsius = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Humidity Slider
+                  Row(
+                    children: [
+                      const Icon(Icons.water_drop_rounded,
+                          size: 18, color: Color(0xFF00B0FF)),
+                      const SizedBox(width: 6),
+                      const Text('الرطوبة (Humidity): ',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text('${_humidity.toStringAsFixed(0)}% RH',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF00B0FF))),
+                    ],
+                  ),
+                  Slider(
+                    value: _humidity,
+                    min: 0,
+                    max: 100,
+                    divisions: 100,
+                    label: '${_humidity.toStringAsFixed(0)}%',
+                    activeColor: const Color(0xFF00B0FF),
+                    onChanged: (value) {
+                      setState(() {
+                        _humidity = value;
+                      });
+                    },
+                  ),
+                ],
+                const SizedBox(height: 12),
+
+                // Humidity Options (خيارات وموضع الرطوبة)
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF232731)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF333A48)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.water_drop_rounded,
+                                  size: 18, color: Color(0xFF00B0FF)),
+                              SizedBox(width: 8),
+                              Text(
+                                'ميزة مقياس الرطوبة (Humidity %RH)',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13.5),
+                              ),
+                            ],
+                          ),
+                          Switch.adaptive(
+                            value: _showHumidity,
+                            activeTrackColor:
+                                const Color(0xFF00B0FF).withValues(alpha: 0.4),
+                            activeThumbColor: const Color(0xFF00B0FF),
+                            onChanged: (val) {
+                              setState(() {
+                                _showHumidity = val;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      if (_showHumidity) ...[
+                        const SizedBox(height: 10),
+                        const Text('شكل وموضع مقياس الرطوبة:',
+                            style: TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            ChoiceChip(
+                              label: const Text(
+                                  '💧 بادج أسفل المستودع (Bottom Pill)'),
+                              selected: _humidityPosition ==
+                                  ds.ThermometerHumidityPosition.bottomPill,
+                              selectedColor: const Color(0xFF00B0FF)
+                                  .withValues(alpha: 0.25),
+                              onSelected: (selected) {
+                                if (selected) {
+                                  setState(() {
+                                    _humidityPosition = ds
+                                        .ThermometerHumidityPosition.bottomPill;
+                                  });
+                                }
+                              },
+                            ),
+                            ChoiceChip(
+                              label: const Text(
+                                  '🧭 قرص هيدروميتر جانبي (Side Dial)'),
+                              selected: _humidityPosition ==
+                                  ds.ThermometerHumidityPosition.sideDial,
+                              selectedColor: const Color(0xFF00B0FF)
+                                  .withValues(alpha: 0.25),
+                              onSelected: (selected) {
+                                if (selected) {
+                                  setState(() {
+                                    _humidityPosition =
+                                        ds.ThermometerHumidityPosition.sideDial;
+                                  });
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Readout Style Selector (نمط عرض البكرة الدائرية)
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF232731)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF333A48)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.style_rounded,
+                              size: 18, color: Colors.blueAccent),
+                          SizedBox(width: 8),
+                          Text(
+                            'شكل ونمط عرض القيمة الحالية (Readout Style)',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 13.5),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          ChoiceChip(
+                            label: const Text('بكرة دائرية عائمة (3 شرطات)'),
+                            selected: _readoutStyle ==
+                                ds.ThermometerReadoutStyle.circularWheel,
+                            selectedColor:
+                                _selectedTheme.primary.withValues(alpha: 0.25),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _readoutStyle =
+                                      ds.ThermometerReadoutStyle.circularWheel;
+                                });
+                              }
+                            },
+                          ),
+                          ChoiceChip(
+                            label: const Text('بكرة مدمجة مكان مقياس C'),
+                            selected: _readoutStyle ==
+                                ds.ThermometerReadoutStyle.integratedScaleWheel,
+                            selectedColor:
+                                _selectedTheme.primary.withValues(alpha: 0.25),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _readoutStyle = ds.ThermometerReadoutStyle
+                                      .integratedScaleWheel;
+                                });
+                              }
+                            },
+                          ),
+                          ChoiceChip(
+                            label: const Text('بادج بسيط (Badge)'),
+                            selected: _readoutStyle ==
+                                ds.ThermometerReadoutStyle.simpleBadge,
+                            selectedColor:
+                                _selectedTheme.primary.withValues(alpha: 0.25),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _readoutStyle =
+                                      ds.ThermometerReadoutStyle.simpleBadge;
+                                });
+                              }
+                            },
+                          ),
+                          ChoiceChip(
+                            label: const Text('إخفاء (None)'),
+                            selected: _readoutStyle ==
+                                ds.ThermometerReadoutStyle.none,
+                            selectedColor:
+                                _selectedTheme.primary.withValues(alpha: 0.25),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _readoutStyle =
+                                      ds.ThermometerReadoutStyle.none;
+                                });
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                ),
+                const SizedBox(height: 12),
+
+                // Top Widget / Animation Selector (اختيار الودجيت في الأعلى مكان الشمس)
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF232731)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF333A48)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ChoiceChip(
-                        label: const Text('بكرة دائرية (3 شرطات)'),
-                        selected: _readoutStyle ==
-                            ds.ThermometerReadoutStyle.circularWheel,
-                        selectedColor:
-                            _selectedTheme.primary.withValues(alpha: 0.25),
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() {
-                              _readoutStyle =
-                                  ds.ThermometerReadoutStyle.circularWheel;
-                            });
-                          }
+                      const Row(
+                        children: [
+                          Icon(Icons.widgets_rounded,
+                              size: 18, color: Colors.orangeAccent),
+                          SizedBox(width: 8),
+                          Text(
+                            'عنصر الواجهة بالأعلى (Top Widget / SVG / Lottie)',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 13.5),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          ChoiceChip(
+                            label: const Text('🌤️ الشمس الافتراضية'),
+                            selected: _topWidgetType == 0,
+                            selectedColor:
+                                Colors.orange.withValues(alpha: 0.25),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _topWidgetType = 0;
+                                });
+                              }
+                            },
+                          ),
+                          ChoiceChip(
+                            label:
+                                const Text('❄️🌿☀️🔥 ودجيت تفاعلي مع الحالة'),
+                            selected: _topWidgetType == 1,
+                            selectedColor: Colors.green.withValues(alpha: 0.25),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _topWidgetType = 1;
+                                });
+                              }
+                            },
+                          ),
+                          ChoiceChip(
+                            label: const Text('✨ مخصص (Custom SVG / Lottie)'),
+                            selected: _topWidgetType == 2,
+                            selectedColor: Colors.teal.withValues(alpha: 0.25),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _topWidgetType = 2;
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Value Equation / Formatter Selector (معادلة وصيغة عرض الحرارة)
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF232731)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF333A48)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.functions_rounded,
+                              size: 18, color: Colors.purpleAccent),
+                          SizedBox(width: 8),
+                          Text(
+                            'صيغة ومعادلة عرض الحرارة (Value Equation Formatter)',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 13.5),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          ChoiceChip(
+                            label: const Text('افتراضي: 32.0°'),
+                            selected: _formulaType == 0,
+                            selectedColor:
+                                Colors.purple.withValues(alpha: 0.25),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _formulaType = 0;
+                                });
+                              }
+                            },
+                          ),
+                          ChoiceChip(
+                            label: const Text('سيلزيوس: 32.0 °C'),
+                            selected: _formulaType == 1,
+                            selectedColor:
+                                Colors.purple.withValues(alpha: 0.25),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _formulaType = 1;
+                                });
+                              }
+                            },
+                          ),
+                          ChoiceChip(
+                            label: const Text('فهرنهايت: 89.6 °F'),
+                            selected: _formulaType == 2,
+                            selectedColor:
+                                Colors.purple.withValues(alpha: 0.25),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _formulaType = 2;
+                                });
+                              }
+                            },
+                          ),
+                          ChoiceChip(
+                            label: const Text('كلفن: 305.2 K'),
+                            selected: _formulaType == 3,
+                            selectedColor:
+                                Colors.purple.withValues(alpha: 0.25),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _formulaType = 3;
+                                });
+                              }
+                            },
+                          ),
+                          ChoiceChip(
+                            label: const Text('مع الحالة: 32° WARM'),
+                            selected: _formulaType == 4,
+                            selectedColor:
+                                Colors.purple.withValues(alpha: 0.25),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _formulaType = 4;
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Spacing Configuration Card (المسافات خارج التصميم)
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF232731)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF333A48)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.space_bar_rounded,
+                              size: 18, color: Colors.tealAccent),
+                          SizedBox(width: 8),
+                          Text(
+                            'التحكم بمسافة العناصر خارج التصميم (Spacing)',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 13.5),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const Text(
+                              'مسافة ودجيت الأعلى (Top Widget Spacing): ',
+                              style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.w600)),
+                          Text('${_topWidgetSpacing.toStringAsFixed(0)} px',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.tealAccent)),
+                        ],
+                      ),
+                      Slider(
+                        value: _topWidgetSpacing,
+                        min: 0,
+                        max: 40,
+                        divisions: 40,
+                        activeColor: Colors.tealAccent,
+                        onChanged: (val) {
+                          setState(() {
+                            _topWidgetSpacing = val;
+                          });
                         },
                       ),
-                      ChoiceChip(
-                        label: const Text('بادج بسيط (Badge)'),
-                        selected: _readoutStyle ==
-                            ds.ThermometerReadoutStyle.simpleBadge,
-                        selectedColor:
-                            _selectedTheme.primary.withValues(alpha: 0.25),
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() {
-                              _readoutStyle =
-                                  ds.ThermometerReadoutStyle.simpleBadge;
-                            });
-                          }
-                        },
+                      Row(
+                        children: [
+                          const Text(
+                              'مسافة ودجيت الرطوبة بالأسفل (Humidity Spacing): ',
+                              style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.w600)),
+                          Text('${_humiditySpacing.toStringAsFixed(0)} px',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.tealAccent)),
+                        ],
                       ),
-                      ChoiceChip(
-                        label: const Text('إخفاء (None)'),
-                        selected:
-                            _readoutStyle == ds.ThermometerReadoutStyle.none,
-                        selectedColor:
-                            _selectedTheme.primary.withValues(alpha: 0.25),
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() {
-                              _readoutStyle = ds.ThermometerReadoutStyle.none;
-                            });
-                          }
+                      Slider(
+                        value: _humiditySpacing,
+                        min: 0,
+                        max: 40,
+                        divisions: 40,
+                        activeColor: Colors.tealAccent,
+                        onChanged: (val) {
+                          setState(() {
+                            _humiditySpacing = val;
+                          });
                         },
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Scale Display Option Switches (°C / °F)
-            Material(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? const Color(0xFF232731)
-                  : const Color(0xFFF8FAFC),
-              clipBehavior: Clip.antiAlias,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF333A48)
-                      : const Color(0xFFE2E8F0),
                 ),
-              ),
-              child: Column(
-                children: [
-                  SwitchListTile(
-                    title: const Text(
-                      'إظهار مقياس السيلزيوس (°C) على اليمين',
-                      style:
-                          TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                    ),
-                    subtitle: const Text(
-                      'المقياس المتري المعتمد في الوطن العربي وأوروبا',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    value: _showCelsius,
-                    activeThumbColor: _selectedTheme.primary,
-                    activeTrackColor:
-                        _selectedTheme.primary.withValues(alpha: 0.4),
-                    onChanged: (val) {
-                      setState(() {
-                        _showCelsius = val;
-                      });
-                    },
-                  ),
-                  const Divider(height: 1),
-                  SwitchListTile(
-                    title: const Text(
-                      'إظهار مقياس الفهرنهايت (°F) على اليسار',
-                      style:
-                          TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                    ),
-                    subtitle: const Text(
-                      'المقياس المستخدم في الولايات المتحدة',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    value: _showFahrenheit,
-                    activeThumbColor: _selectedTheme.primary,
-                    activeTrackColor:
-                        _selectedTheme.primary.withValues(alpha: 0.4),
-                    onChanged: (val) {
-                      setState(() {
-                        _showFahrenheit = val;
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-            // Additional Display Options (Micro-Labels & Auto-Theme)
-            Material(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? const Color(0xFF232731)
-                  : const Color(0xFFF8FAFC),
-              clipBehavior: Clip.antiAlias,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF333A48)
-                      : const Color(0xFFE2E8F0),
+                // Danger Alert Settings Card (الإنذار والهزاز والصوت)
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF232731)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color:
+                          _celsius >= _criticalMaxCelsius && _enableDangerAlert
+                              ? const Color(0xFFFF1744)
+                              : (Theme.of(context).brightness == Brightness.dark
+                                  ? const Color(0xFF333A48)
+                                  : const Color(0xFFE2E8F0)),
+                      width:
+                          _celsius >= _criticalMaxCelsius && _enableDangerAlert
+                              ? 1.8
+                              : 1.0,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.notification_important_rounded,
+                                  size: 18, color: Color(0xFFFF1744)),
+                              SizedBox(width: 8),
+                              Text(
+                                'إنذار درجة الحرارة الحرجة (هزاز + صوت)',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13.5),
+                              ),
+                            ],
+                          ),
+                          Switch.adaptive(
+                            value: _enableDangerAlert,
+                            activeTrackColor:
+                                const Color(0xFFFF1744).withValues(alpha: 0.4),
+                            activeThumbColor: const Color(0xFFFF1744),
+                            onChanged: (val) {
+                              setState(() {
+                                _enableDangerAlert = val;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      if (_enableDangerAlert) ...[
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            const Text('حد درجة الحرارة الخطرة: ',
+                                style: TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.w600)),
+                            Text('${_criticalMaxCelsius.toStringAsFixed(0)}°C',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFFF1744))),
+                          ],
+                        ),
+                        Slider(
+                          value: _criticalMaxCelsius,
+                          min: 25,
+                          max: 48,
+                          divisions: 23,
+                          activeColor: const Color(0xFFFF1744),
+                          onChanged: (val) {
+                            setState(() {
+                              _criticalMaxCelsius = val;
+                            });
+                          },
+                        ),
+                        const Text(
+                          '📱 عند تجاوز هذه الدرجة، يصدر الهاتف هزازاً ملموساً وصوت إنذار مع نبضات ضوئية على مقياس الحرارة.',
+                          style: TextStyle(fontSize: 11.5, color: Colors.grey),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
-              child: Column(
-                children: [
-                  SwitchListTile(
-                    title: const Text(
-                      'أرقام التدريج الدقيق (Micro-Labels)',
-                      style:
-                          TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                const SizedBox(height: 12),
+
+                // Custom Colors & Styles Theme Switch (100% قابلية التخصيص للون والنصوص)
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF232731)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF333A48)
+                          : const Color(0xFFE2E8F0),
                     ),
-                    subtitle: const Text(
-                      'إظهار أرقام مصغرة عند كل شرطة فرعية مثل البكارة والمسطرة',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    value: _showMinorLabels,
-                    activeThumbColor: _selectedTheme.primary,
-                    activeTrackColor:
-                        _selectedTheme.primary.withValues(alpha: 0.4),
-                    onChanged: (val) {
-                      setState(() {
-                        _showMinorLabels = val;
-                      });
-                    },
                   ),
-                  const Divider(height: 1),
-                  SwitchListTile(
-                    title: const Text(
-                      'تغيير لون السائل تلقائياً حسب حرارة الحساس (Auto-Theme)',
-                      style:
-                          TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                    ),
-                    subtitle: const Text(
-                      'يتغير اللون ديناميكياً (أزرق للبارد، أخضر للمعتدل، أحمر للحار)',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    value: _autoThemeBasedOnSensor,
-                    activeThumbColor: _selectedTheme.primary,
-                    activeTrackColor:
-                        _selectedTheme.primary.withValues(alpha: 0.4),
-                    onChanged: (val) {
-                      setState(() {
-                        _autoThemeBasedOnSensor = val;
-                        if (val) {
-                          _selectedTheme =
-                              ds.ThermometerFluidTheme.fromCelsius(_celsius);
-                        }
-                      });
-                    },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.palette_rounded,
+                              size: 18, color: Color(0xFF8B5CF6)),
+                          SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'تخصيص كامل للألوان (ThermometerColors)',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13.5),
+                              ),
+                              Text(
+                                'تطبيق لوحة ألوان بنفسجية مخصصة للزجاج والسائل والتدريجات',
+                                style:
+                                    TextStyle(fontSize: 11, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Switch.adaptive(
+                        value: _useCustomPalette,
+                        activeTrackColor:
+                            const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+                        activeThumbColor: const Color(0xFF8B5CF6),
+                        onChanged: (val) {
+                          setState(() {
+                            _useCustomPalette = val;
+                          });
+                        },
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ]),
+                ),
+                const SizedBox(height: 12),
+
+                // Scale Display Option Switches (°C / °F)
+                Material(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF232731)
+                      : const Color(0xFFF8FAFC),
+                  clipBehavior: Clip.antiAlias,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF333A48)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      SwitchListTile(
+                        title: const Text(
+                          'إظهار مقياس السيلزيوس (°C) على اليمين',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 14),
+                        ),
+                        subtitle: const Text(
+                          'المقياس المتري المعتمد في الوطن العربي وأوروبا',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        value: _showCelsius,
+                        activeThumbColor: _selectedTheme.primary,
+                        activeTrackColor:
+                            _selectedTheme.primary.withValues(alpha: 0.4),
+                        onChanged: (val) {
+                          setState(() {
+                            _showCelsius = val;
+                          });
+                        },
+                      ),
+                      const Divider(height: 1),
+                      SwitchListTile(
+                        title: const Text(
+                          'إظهار مقياس الفهرنهايت (°F) على اليسار',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 14),
+                        ),
+                        subtitle: const Text(
+                          'المقياس المستخدم في الولايات المتحدة',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        value: _showFahrenheit,
+                        activeThumbColor: _selectedTheme.primary,
+                        activeTrackColor:
+                            _selectedTheme.primary.withValues(alpha: 0.4),
+                        onChanged: (val) {
+                          setState(() {
+                            _showFahrenheit = val;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Additional Display Options (Micro-Labels & Auto-Theme)
+                Material(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF232731)
+                      : const Color(0xFFF8FAFC),
+                  clipBehavior: Clip.antiAlias,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF333A48)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      SwitchListTile(
+                        title: const Text(
+                          'أرقام التدريج الدقيق (Micro-Labels)',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 14),
+                        ),
+                        subtitle: const Text(
+                          'إظهار أرقام مصغرة عند كل شرطة فرعية مثل البكارة والمسطرة',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        value: _showMinorLabels,
+                        activeThumbColor: _selectedTheme.primary,
+                        activeTrackColor:
+                            _selectedTheme.primary.withValues(alpha: 0.4),
+                        onChanged: (val) {
+                          setState(() {
+                            _showMinorLabels = val;
+                          });
+                        },
+                      ),
+                      const Divider(height: 1),
+                      SwitchListTile(
+                        title: const Text(
+                          'تغيير لون السائل تلقائياً حسب حرارة الحساس (Auto-Theme)',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 14),
+                        ),
+                        subtitle: const Text(
+                          'يتغير اللون ديناميكياً (أزرق للبارد، أخضر للمعتدل، أحمر للحار)',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        value: _autoThemeBasedOnSensor,
+                        activeThumbColor: _selectedTheme.primary,
+                        activeTrackColor:
+                            _selectedTheme.primary.withValues(alpha: 0.4),
+                        onChanged: (val) {
+                          setState(() {
+                            _autoThemeBasedOnSensor = val;
+                            if (val) {
+                              _selectedTheme =
+                                  ds.ThermometerFluidTheme.fromCelsius(
+                                      _celsius);
+                            }
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ]),
 
           // Standalone 3D Cylindrical Wheel Readout Showcase
           _section(context,
@@ -766,6 +1504,74 @@ class _ThermometerPageState extends State<ThermometerPage> {
               ],
             ),
           ]),
+
+          _section(context, 'Hygrometer Gauges (مقاييس الرطوبة المستقلة)',
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF1E2430)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF2E384D)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: const Column(
+                    children: [
+                      Text(
+                        'عنصر مقياس الرطوبة المستقل (HygrometerWidget) للاستخدام في البطاقات واللوحات الإحصائية:',
+                        style: TextStyle(
+                            fontSize: 12.5, fontWeight: FontWeight.w600),
+                      ),
+                      SizedBox(height: 16),
+                      Wrap(
+                        spacing: 24,
+                        runSpacing: 16,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          Column(
+                            children: [
+                              ds.HygrometerWidget(humidity: 22, size: 85),
+                              SizedBox(height: 6),
+                              Text('22% RH (جاف)',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.orange)),
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              ds.HygrometerWidget(humidity: 55, size: 85),
+                              SizedBox(height: 6),
+                              Text('55% RH (مثالي)',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green)),
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              ds.HygrometerWidget(humidity: 88, size: 85),
+                              SizedBox(height: 6),
+                              Text('88% RH (رطب)',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF00B0FF))),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ]),
         ],
       ),
     );
