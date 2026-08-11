@@ -87,6 +87,7 @@ class _ThermometerPageState extends State<ThermometerPage> {
 
   // Custom Colors Theme Switch
   bool _useCustomPalette = false;
+  bool _autoTheme = true;
 
   // Custom Top Widget selection (0: Sun Default, 1: Dynamic State Badge/Animation, 2: Custom Lottie/SVG style)
   int _topWidgetType = 1;
@@ -391,6 +392,7 @@ class _ThermometerPageState extends State<ThermometerPage> {
                     showFahrenheit: _showFahrenheit,
                     showMinorLabels: _showMinorLabels,
                     fluidTheme: _selectedTheme,
+                    autoTheme: _autoTheme,
                     readoutStyle: _readoutStyle,
                     thresholds: _thresholds,
                     valueFormatter: _currentValueFormatter,
@@ -1080,6 +1082,64 @@ class _ThermometerPageState extends State<ThermometerPage> {
                           style: TextStyle(fontSize: 11.5, color: Colors.grey),
                         ),
                       ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Auto-Theme Dynamic Mode Switch (تغيير الألوان تلقائياً حسب القيمة الحالية)
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF232731)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: _autoTheme
+                          ? Colors.cyanAccent.withValues(alpha: 0.5)
+                          : (Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFF333A48)
+                              : const Color(0xFFE2E8F0)),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.auto_awesome_rounded,
+                              size: 18, color: Colors.cyanAccent),
+                          SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'تغيير الألوان ديناميكياً حسب الحرارة (Auto-Theme)',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13.5),
+                              ),
+                              Text(
+                                'يتحول السائل تلقائياً (أزرق بارد ➔ أخضر معتدل ➔ برتقالي دافئ ➔ أحمر حار)',
+                                style: TextStyle(
+                                    fontSize: 11, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Switch.adaptive(
+                        value: _autoTheme,
+                        activeTrackColor:
+                            Colors.cyanAccent.withValues(alpha: 0.4),
+                        activeThumbColor: Colors.cyanAccent,
+                        onChanged: (val) {
+                          setState(() {
+                            _autoTheme = val;
+                          });
+                        },
+                      ),
                     ],
                   ),
                 ),

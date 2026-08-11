@@ -387,6 +387,15 @@ class ThermometerWidget extends StatefulWidget {
   /// Callback when temperature changes (provides Celsius value).
   final ValueChanged<double>? onChanged;
 
+  /// Whether to automatically adapt the fluid theme dynamically based on current live temperature value.
+  final bool autoTheme;
+
+  /// Optional dynamic builder to resolve fluid theme based on live temperature and thermal state.
+  final ThermometerFluidTheme Function(double celsius, ThermometerTemperatureState state)? fluidThemeBuilder;
+
+  /// Optional dynamic builder to resolve full ThermometerColors based on live temperature and thermal state.
+  final ThermometerColors Function(double celsius, ThermometerTemperatureState state)? colorsBuilder;
+
   /// Callback when thermal state changes (cool, normal, warm, hot).
   final ValueChanged<ThermometerTemperatureState>? onStateChanged;
 
@@ -425,6 +434,9 @@ class ThermometerWidget extends StatefulWidget {
     this.celsiusMinorStep = 1,
     this.fahrenheitMajorStep = 20,
     this.fluidTheme = ThermometerFluidTheme.redSpirit,
+    this.autoTheme = false,
+    this.fluidThemeBuilder,
+    this.colorsBuilder,
     this.readoutStyle = ThermometerReadoutStyle.circularWheel,
     this.customFluidColor,
     this.colors,
@@ -650,6 +662,25 @@ class _ThermometerWidgetState extends State<ThermometerWidget>
             final currentFahrenheit = animatedCelsius * 9 / 5 + 32;
             final tempState = widget.thresholds.getState(animatedCelsius);
 
+            // Dynamic fluid theme & colors resolution based on current live value
+            final ThermometerFluidTheme resolvedFluidTheme;
+            if (widget.fluidThemeBuilder != null) {
+              resolvedFluidTheme =
+                  widget.fluidThemeBuilder!(animatedCelsius, tempState);
+            } else if (widget.autoTheme) {
+              resolvedFluidTheme = ThermometerFluidTheme.fromCelsius(
+                  animatedCelsius, widget.thresholds);
+            } else {
+              resolvedFluidTheme = widget.fluidTheme;
+            }
+
+            final ThermometerColors? resolvedColors;
+            if (widget.colorsBuilder != null) {
+              resolvedColors = widget.colorsBuilder!(animatedCelsius, tempState);
+            } else {
+              resolvedColors = widget.colors;
+            }
+
             // Custom Top Widget Slot (SVG, Lottie, or custom dynamic widget outside top of thermometer)
             Widget? resolvedTopWidget;
             if (widget.showSunIcon) {
@@ -747,10 +778,10 @@ class _ThermometerWidgetState extends State<ThermometerWidget>
                         celsiusMediumStep: widget.celsiusMediumStep,
                         celsiusMinorStep: widget.celsiusMinorStep,
                         fahrenheitMajorStep: widget.fahrenheitMajorStep,
-                        fluidTheme: widget.fluidTheme,
+                        fluidTheme: resolvedFluidTheme,
                         readoutStyle: widget.readoutStyle,
                         customFluidColor: widget.customFluidColor,
-                        colors: widget.colors,
+                        colors: resolvedColors,
                         celsiusUnitLabel: widget.celsiusUnitLabel,
                         fahrenheitUnitLabel: widget.fahrenheitUnitLabel,
                         valueFormatter: widget.valueFormatter,

@@ -315,5 +315,31 @@ void main() {
       expect(find.text('CUSTOM_TOP_HEADER'), findsOneWidget);
       expect(find.byType(ThermometerWidget), findsOneWidget);
     });
+
+    testWidgets('Supports autoTheme and fluidThemeBuilder dynamic color changing based on value', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ThermometerWidget(
+              celsius: 15.0,
+              autoTheme: true,
+              fluidThemeBuilder: (celsius, state) {
+                if (celsius < 20) return ThermometerFluidTheme.cryoBlue;
+                return ThermometerFluidTheme.redSpirit;
+              },
+              colorsBuilder: (celsius, state) {
+                return ThermometerColors(
+                  fluidPrimary: celsius < 20 ? Colors.blue : Colors.red,
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      expect(find.byType(ThermometerWidget), findsOneWidget);
+    });
   });
 }
