@@ -65,9 +65,9 @@ class AppTheme {
       //secondaryContainer: AppColors.secondaryDark,
       surface: RescGlass.bg,
       onSurface: RescGlass.textPri,
-      surfaceContainer: Color(0xFF0E1612),
-      surfaceContainerHigh: Color(0xFF131D17),
-      surfaceContainerHighest: Color(0xFF18241D),
+      surfaceContainer: Color(0xFF1A1A1A),
+      surfaceContainerHigh: Color(0xFF262626),
+      surfaceContainerHighest: Color(0xFF333333),
       onSurfaceVariant: RescGlass.textMid,
       error: RescGlass.red,
       onError: Colors.white,
@@ -82,7 +82,7 @@ class AppTheme {
     return _baseTheme(
       scheme,
       Brightness.dark,
-    ).copyWith(scaffoldBackgroundColor: const Color(0xFF242423));
+    ).copyWith(scaffoldBackgroundColor: const Color(0xFF0D0D0D));
   }
 
   // ────────────────────────────────────────────────────────────────────────
@@ -120,14 +120,13 @@ class AppTheme {
         iconTheme: IconThemeData(color: s.onSurface),
       ),
 
-      // ── Cards — bordered, no shadow by default ──────────────────────────
+      // ── Cards — shadow-based depth, no border ───────────────────────────
       cardTheme: CardThemeData(
         elevation: 0,
-        color: isDark ? AppColors.darkSurfaceRaised : Colors.transparent,
+        color: isDark ? AppColors.darkSurfaceRaised : AppColors.backgroundTertiary,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadii.card,
-          side: BorderSide(color: s.outline, width: 1),
         ),
         margin: EdgeInsets.zero,
       ),
@@ -276,7 +275,7 @@ class AppTheme {
           fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
-        side: BorderSide(color: s.outline, width: 1),
+        side: BorderSide.none,
         shape: const RoundedRectangleBorder(borderRadius: AppRadii.chip),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       ),
