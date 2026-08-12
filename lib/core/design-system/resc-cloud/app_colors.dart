@@ -179,13 +179,11 @@ extension AppColorsExtension on BuildContext {
   Color get inputBackground => surfaceSunken;
   bool get isDark => Theme.of(this).brightness == Brightness.dark;
 
-  /// Card fill: tertiary background in both modes (no glass).
-  /// Light: #FFFFFF, Dark: #262626.
+  /// Card fill: warm off-white in light, translucent white in dark.
   Color get liquidCardFill =>
-      isDark ? AppColors.darkSurfaceRaised : AppColors.backgroundTertiary;
+      isDark ? const Color(0x0BFFFFFF) : AppColors.onPrimary;
 
-  /// Card shadow — depth via shadow, no border.
-  /// Light: 8% black. Dark: 20% black for elevation.
+  /// Card shadow matching the fill mode.
   List<BoxShadow> get liquidCardShadow => isDark
       ? const [
           BoxShadow(
