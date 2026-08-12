@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 /// **RESC IoT — Calm Saudi Premium tokens**
 ///
-/// All neutrals are warm-tinted (OKLCH chroma 0.005–0.012, hue ~95°) so the
-/// surface feels like fine sand at midday rather than clinical white.
+/// Neutral surface hierarchy (primary / secondary / tertiary) with shadow-based
+/// depth — no glass, no borders. All neutrals are pure gray (no warm tint).
 /// All public names preserved for backward compatibility; values updated.
 class AppColors {
   /// Brand green deepened slightly so it stays legible on warm sand surfaces.
@@ -65,9 +65,9 @@ class AppColors {
   static const Color onPrimary = Color(0xFFF2F2F2);
 
   static const Color onSecondary = Color(0xFF1F2620);
-  static const Color textPrimary = Color(0xFF1F2620);
-  static const Color textSecondary = Color(0xFF5C6660);
-  static const Color textTertiary = Color(0xFF8B8576);
+  static const Color textPrimary = Color(0xFF0D0D0D);
+  static const Color textSecondary = Color(0xFF5C5C5C);
+  static const Color textTertiary = Color(0xFF7A7A7A);
   static const Color onSurface = textPrimary;
   static const Color onBackground = textPrimary;
   static const Color onSurfaceVariant = textSecondary;
@@ -98,21 +98,21 @@ class AppColors {
   static const Color gradientBackgroundStart = surface;
 
   static const Color gradientBackgroundEnd = surfaceRaised;
-  // ───────────────────────────────────────────────────────────────────────
-  // Neutral scale (light) — every step warm-tinted toward sand.
-  // ───────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // Neutral scale (light) — neutral gray hierarchy.
+  // ─────────────────────────────────────────────────────────────────────────
   static const Color neutral0 = Color(0xFFF2F2F2);
 
-  static const Color neutral10 = Color(0xFFF8F5EE);
-  static const Color neutral20 = Color(0xFFF1ECE0);
-  static const Color neutral30 = Color(0xFFE3DED1);
-  static const Color neutral40 = Color(0xFFD0CABB);
-  static const Color neutral50 = Color(0xFFA9A493);
-  static const Color neutral60 = Color(0xFF8B8576);
-  static const Color neutral70 = Color(0xFF6E6A5E);
-  static const Color neutral80 = Color(0xFF52503F);
-  static const Color neutral90 = Color(0xFF3A3A2E);
-  static const Color neutral100 = Color(0xFF1F2620);
+  static const Color neutral10 = Color(0xFFE6E6E6);
+  static const Color neutral20 = Color(0xFFD0D0D0);
+  static const Color neutral30 = Color(0xFFB8B8B8);
+  static const Color neutral40 = Color(0xFF9A9A9A);
+  static const Color neutral50 = Color(0xFF7A7A7A);
+  static const Color neutral60 = Color(0xFF5C5C5C);
+  static const Color neutral70 = Color(0xFF404040);
+  static const Color neutral80 = Color(0xFF2A2A2A);
+  static const Color neutral90 = Color(0xFF1A1A1A);
+  static const Color neutral100 = Color(0xFF0D0D0D);
   static const Color neutral = neutral60;
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -124,8 +124,8 @@ class AppColors {
   static const Color darkSurfaceRaised = Color(0xFF262626);
   static const Color darkSurfaceSunken = Color(0xFF1A1A1A);
   static const Color darkSurfaceVariant = darkSurfaceRaised;
-  static const Color darkOnSurface = Color(0xFFF0EDE6);
-  static const Color darkOnBackground = Color(0xFFF0EDE6);
+  static const Color darkOnSurface = Color(0xFFF0F0F0);
+  static const Color darkOnBackground = Color(0xFFF0F0F0);
   static const Color darkPrimary = Color(
     0xFF5BB955,
   ); // brand brightened for dark
