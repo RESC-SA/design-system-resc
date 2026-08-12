@@ -93,8 +93,11 @@
 | `dryLabel` | `String?` | `null` | النص المخصص لحالة الجو الجاف (افتراضي: 'جاف'). |
 | `comfortableLabel` | `String?` | `null` | النص المخصص لحالة الجو المعتدل (افتراضي: 'مثالي'). |
 | `humidLabel` | `String?` | `null` | النص المخصص لحالة الجو الرطب (افتراضي: 'رطب'). |
-| `readoutStyle` | `ThermometerReadoutStyle` | `circularWheel` | نمط عرض القيمة الحالية (`circularWheel`, `integratedScaleWheel`, `simpleBadge`, `none`). |
 | `fluidTheme` | `ThermometerFluidTheme` | `redSpirit` | المظهر اللوني للسائل (`redSpirit`, `mercury`, `ecoGreen`, `oceanBlue`, `amberGold`, `deepPurple`). |
+| `autoTheme` | `bool` | `false` | تفعيل التغيير التلقائي لألوان السائل والتوهج ديناميكياً مع حركة وتغير الحرارة (أزرق للبارد، أخضر للمعتدل، كهرماني للدافئ، أحمر للحار). |
+| `fluidThemeBuilder` | `Function(double, State)?` | `null` | دالة بناء ديناميكية مخصصة لتحديد مظهر السائل حسب درجة الحرارة الحالية `(celsius, state)`. |
+| `colorsBuilder` | `Function(double, State)?` | `null` | دالة بناء ديناميكية مخصصة لتوليد ألوان `ThermometerColors` بالكامل حسب القيمة الحالية `(celsius, state)`. |
+| `readoutStyle` | `ThermometerReadoutStyle` | `circularWheel` | نمط عرض القيمة الحالية (`circularWheel`, `integratedScaleWheel`, `simpleBadge`, `none`). |
 | `topWidget` | `Widget?` | `null` | ودجيت مخصصة ثابتة للأعلى (مثل أيقونة أو SVG أو Lottie). |
 | `topWidgetBuilder` | `Widget Function(...)` | `null` | دالة بناء ديناميكية لتغيير عنصر الأعلى وفقاً لحالة الحرارة. |
 | `valueFormatter` | `String Function(double)?`| `null` | معادلة أو صيغة مخصصة لتنسيق وعرض نص الحرارة. |

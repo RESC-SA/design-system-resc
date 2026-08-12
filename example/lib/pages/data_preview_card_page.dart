@@ -178,14 +178,25 @@ class DataPreviewCardPage extends StatelessWidget {
             ),
           ]),
           _section(context, 'With Custom Border Radius', children: [
-            ds.DataPreviewCard(
+            const ds.DataPreviewCard(
               title: 'Temperature',
               value: '24°C',
               valueLabel: 'Room',
               lottieTitle: 'Climate',
-              lottieWidget: _buildMockLottie(Icons.thermostat),
+              lottieWidget: ds.ThermometerWidget(
+                celsius: 24,
+                width: 80,
+                height: 110,
+                showFahrenheit: false,
+                showMinorLabels: true,
+                showSunIcon: false,
+                showCelsius: false,
+                showHumidity: false,
+                readoutStyle: ds.ThermometerReadoutStyle.simpleBadge,
+                interactive: false,
+              ),
               borderRadius: 24,
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20),
               status: 'Normal',
               description: 'Temperature monitoring system',
             ),
