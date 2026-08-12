@@ -120,7 +120,8 @@ class AppTheme {
       // ── Cards — shadow-based depth, no border ───────────────────────────
       cardTheme: CardThemeData(
         elevation: 0,
-        color: isDark ? AppColors.darkSurfaceRaised : AppColors.backgroundTertiary,
+        color:
+            isDark ? AppColors.darkSurfaceRaised : AppColors.backgroundTertiary,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadii.card,
@@ -172,9 +173,8 @@ class AppTheme {
       // ── Inputs ──────────────────────────────────────────────────────────
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark
-            ? AppColors.darkSurfaceSunken
-            : AppColors.surfaceSunken,
+        fillColor:
+            isDark ? AppColors.darkSurfaceSunken : AppColors.surfaceSunken,
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -263,9 +263,8 @@ class AppTheme {
 
       // ── Chips ───────────────────────────────────────────────────────────
       chipTheme: ChipThemeData(
-        backgroundColor: isDark
-            ? AppColors.darkSurfaceRaised
-            : AppColors.surfaceSunken,
+        backgroundColor:
+            isDark ? AppColors.darkSurfaceRaised : AppColors.surfaceSunken,
         selectedColor: s.primaryContainer,
         labelStyle: TextStyle(
           color: s.onSurface,
@@ -338,12 +337,10 @@ class AppTheme {
       // ── Progress indicators ─────────────────────────────────────────────
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: s.primary,
-        linearTrackColor: isDark
-            ? AppColors.darkNeutral30
-            : AppColors.surfaceSunken,
-        circularTrackColor: isDark
-            ? AppColors.darkNeutral30
-            : AppColors.surfaceSunken,
+        linearTrackColor:
+            isDark ? AppColors.darkNeutral30 : AppColors.surfaceSunken,
+        circularTrackColor:
+            isDark ? AppColors.darkNeutral30 : AppColors.surfaceSunken,
       ),
 
       // ── Cupertino integration (so iOS gets warm theme too) ──────────────
