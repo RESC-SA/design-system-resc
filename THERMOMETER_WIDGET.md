@@ -46,7 +46,8 @@
 
 * **نظام إنذار عند بلوغ درجات الحرارة الحرجة (Critical Danger Alert)**:
   - تفعيل هزاز الهاتف التلقائي الإجباري (`HapticFeedback.heavyImpact()` و `HapticFeedback.vibrate()`).
-  - تشغيل صوت تنبيه النظام (`SystemSound.play()`) أو مشغل صوت مخصص لملفات الصوت (`customAlertSoundPlayer`).
+  - هزاز إجباري خفيف (`HapticFeedback.vibrate()`) عند **كل نبضة** من نبضات التنبيه أثناء الخطر — بدون أي صوت افتراضي للنظام.
+  - مشغل صوت مخصص لملفات الصوت فقط (`customAlertSoundPlayer`) عند دخول الخطر.
   - هالة ضوئية متوهجة ونابضة حول مقياس الحرارة تحذيراً بارتفاع أو انخفاض الحرارة بشكل خطر.
   - نبض أحمر متوهج على البصيلة نفسها (كرة الزئبق السفلية): إضاءة داخلية + حافة متوهجة + موجة توسّع، محكومة بـ `showAlertVisualPulse`.
 
@@ -82,11 +83,10 @@
 | `humidityPosition` | `ThermometerHumidityPosition` | `bottomPill` | موضع وشكل ودجيت الرطوبة (`bottomPill`, `sideDial`, `none`). |
 | `criticalMaxCelsius` | `double?` | `null` | درجة الحرارة القصوى التي يبدأ عندها إطلاق إنذار الخطر. |
 | `criticalMinCelsius` | `double?` | `null` | درجة الحرارة الدنيا التي يبدأ عندها إطلاق إنذار الصقيع/الخطر. |
-| `enableAlertVibration` | `bool` | `true` | تفعيل اهتزاز الهاتف عند تجاوز حد الخطر. |
-| `enableAlertSound` | `bool` | `true` | تفعيل صوت تنبيه الهاتف عند تجاوز حد الخطر. |
-| `showAlertVisualPulse` | `bool` | `true` | تفعيل الهالة الضوئية النابضة عند الخطر. |
+| `enableAlertVibration` | `bool` | `true` | تفعيل الهزاز القوي عند دخول منطقة الخطر. |
+| `showAlertVisualPulse` | `bool` | `true` | تفعيل الهالة والنبض البصري عند الخطر. |
 | `onAlertTriggered` | `Function(double, bool)?` | `null` | رد نداء يُستدعى عند تفعيل الإنذار `(celsius, isMaxCritical)`. |
-| `customAlertSoundPlayer`| `VoidCallback?` | `null` | دالة لتشغيل ملف صوت مخصص من المشروع عند الإنذار. |
+| `customAlertSoundPlayer`| `VoidCallback?` | `null` | دالة لتشغيل ملف صوت مخصص من المشروع عند الإنذار (بديل صوت النظام الافتراضي المحذوف). |
 | `colors` | `ThermometerColors?` | `null` | لوحة ألوان مخصصة بالكامل لجميع أجزاء المقياس. |
 | `celsiusUnitLabel` | `String` | `'°C'` | نص تسمية وحدة السيلزيوس. |
 | `fahrenheitUnitLabel`| `String` | `'°F'` | نص تسمية وحدة الفهرنهايت. |
@@ -158,10 +158,11 @@ const ThermometerColors({
 ## 🚨 نظام الإنذار الحرج مع الهزاز والصوت (Danger Alert System)
 
 عند وصول درجة الحرارة للحد الأقصى (`criticalMaxCelsius`) أو الحد الأدنى (`criticalMinCelsius`):
-1. **الهزاز الفيزيائي**: يُطلق الهاتف اهتزازاً ملموساً وقوياً عبر `HapticFeedback.heavyImpact()` و `HapticFeedback.vibrate()`.
-2. **صوت التنبيه**: يصدر صوت النظام `SystemSoundType.alert` أو يتم استدعاء دالتك المخصصة `customAlertSoundPlayer` لتشغيل ملف صوتي من التطبيق.
-3. **نبض بصري متوهج**: تنبض هالة متوهجة باللون الأحمر (أو اللون المخصص في `colors.alertGlow`) حول زجاج المقياس.
-4. **حماية الأداء (Throttling)**: لن يتكرر الصوت والهزاز أكثر من مرة واحدة كل 700 مللي ثانية لمنع الإزعاج في تدفق قراءات الحساسات السريعة.
+1. **الهزاز الفيزيائي**: يُطلق الهاتف اهتزازاً ملموساً وقوياً عبر `HapticFeedback.heavyImpact()` و `HapticFeedback.vibrate()` عند دخول الخطر.
+2. **هزاز كل نبضة (إجباري)**: مع كل نبضة من نبضات البصيلة أثناء الخطر (كل ~0.6 ثانية) يُطلق `HapticFeedback.vibrate()` مباشرة — بدون أي صوت افتراضي للنظام.
+3. **نبض بصري متوهج**: تنبض هالة متوهجة باللون الأحمر (أو اللون المخصص في `colors.alertGlow`) حول زجاج المقياس وعلى البصيلة نفسها.
+4. **صوت مخصص فقط**: لا يُصدر أي صوت افتراضي؛ إن أردت صوتاً استخدم `customAlertSoundPlayer` (يُستدعى مرة عند دخول الخطر).
+5. **حماية الأداء (Throttling)**: لن يتكرر الهزاز القوي أكثر من مرة واحدة كل 700 مللي ثانية لمنع الإزعاج في تدفق قراءات الحساسات السريعة.
 
 ---
 
@@ -239,7 +240,6 @@ class _IoTTelemetryScreenState extends State<IoTTelemetryScreen> {
           // إعدادات الإنذار الحرج (عند تجاوز 39°C)
           criticalMaxCelsius: 39.0,
           enableAlertVibration: true,
-          enableAlertSound: true,
           onAlertTriggered: (celsius, isMax) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

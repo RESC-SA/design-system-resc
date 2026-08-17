@@ -44,6 +44,120 @@ class DataPreviewCardPage extends StatelessWidget {
               lottieWidget: _buildMockLottie(Icons.storage),
             ),
           ]),
+          _section(context, 'Card with Custom Title Widget', children: [
+            ds.DataPreviewCard(
+              title: 'Custom Title Widget',
+              value: 'Active',
+              valueLabel: 'Status',
+              titleWidget: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Server Status',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+              lottieTitle: 'Health',
+              lottieWidget: _buildMockLottie(Icons.health_and_safety),
+            ),
+          ]),
+          _section(context, 'Card with Custom Description Widget', children: [
+            ds.DataPreviewCard(
+              title: 'Storage Usage',
+              value: '78%',
+              valueLabel: 'Used',
+              status: 'Warning',
+              statusColor: Colors.orange,
+              descriptionWidget: const Row(
+                children: [
+                  Icon(Icons.warning, color: Colors.orange, size: 16),
+                  SizedBox(width: 4),
+                  Text(
+                    'Your storage is almost full',
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+              lottieTitle: 'Space',
+              lottieWidget: _buildMockLottie(Icons.storage),
+            ),
+          ]),
+          _section(context, 'Card Without Title', children: [
+            ds.DataPreviewCard(
+              title: 'Hidden Title',
+              value: '95°F',
+              valueLabel: 'Temperature',
+              showTitle: false,
+              lottieTitle: 'Hot',
+              lottieWidget: _buildMockLottie(Icons.thermostat),
+            ),
+          ]),
+          _section(context, 'Card with Custom Value Widget', children: [
+            ds.DataPreviewCard(
+              title: 'Network Speed',
+              value: '1.2 Gbps',
+              valueLabel: 'Current',
+              valueWidget: Row(
+                children: [
+                  const Icon(Icons.speed, color: Colors.blue, size: 24),
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '1.2 Gbps',
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                      Text(
+                        'Upload Speed',
+                        style: TextStyle(
+                          color: Colors.blue.withValues(alpha: 0.7),
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              lottieTitle: 'Speed',
+              lottieWidget: _buildMockLottie(Icons.network_check),
+            ),
+          ]),
+          _section(context, 'Card Without Value', children: [
+            ds.DataPreviewCard(
+              title: 'Status Only',
+              value: 'N/A',
+              valueLabel: 'Status',
+              showValue: false,
+              status: 'Processing',
+              statusColor: Colors.orange,
+              lottieTitle: 'Working',
+              lottieWidget: _buildMockLottie(Icons.refresh),
+            ),
+          ]),
+          _section(context, 'Card Without Description', children: [
+            ds.DataPreviewCard(
+              title: 'Temperature',
+              value: '72°F',
+              valueLabel: 'Current',
+              showDescription: false,
+              lottieTitle: 'Comfort',
+              lottieWidget: _buildMockLottie(Icons.thermostat),
+            ),
+          ]),
           _section(context, 'Card with Status and Description', children: [
             ds.DataPreviewCard(
               title: 'API Requests',
@@ -158,6 +272,42 @@ class DataPreviewCardPage extends StatelessWidget {
               status: 'Critical',
               statusColor: Colors.red,
               icon: Icon(Icons.sd_card, color: Colors.red),
+            ),
+          ]),
+          _section(context, 'Compact Variant with Custom Value', children: [
+            const ds.DataPreviewCardCompact(
+              title: 'Download',
+              value: '45.6 MB/s',
+              icon: Icon(Icons.download, color: Colors.green),
+              valueWidget: Row(
+                children: [
+                  Icon(Icons.arrow_downward, color: Colors.green, size: 16),
+                  SizedBox(width: 4),
+                  Text(
+                    '45.6 MB/s',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ]),
+          _section(context, 'Compact Variant Without Title', children: [
+            const ds.DataPreviewCardCompact(
+              title: 'Hidden',
+              value: 'Active',
+              icon: Icon(Icons.check_circle, color: Colors.green),
+              showTitle: false,
+            ),
+            const SizedBox(height: 8),
+            const ds.DataPreviewCardCompact(
+              title: 'Hidden',
+              value: 'Warning',
+              icon: Icon(Icons.warning, color: Colors.orange),
+              showTitle: false,
             ),
           ]),
           _section(context, 'Card Without Lottie', children: [

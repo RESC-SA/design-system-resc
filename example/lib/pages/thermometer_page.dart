@@ -386,7 +386,6 @@ class _ThermometerPageState extends State<ThermometerPage> {
                     criticalMaxCelsius:
                         _enableDangerAlert ? _criticalMaxCelsius : null,
                     enableAlertVibration: true,
-                    enableAlertSound: true,
                     colors: customColors,
                     showCelsius: _showCelsius,
                     showFahrenheit: _showFahrenheit,

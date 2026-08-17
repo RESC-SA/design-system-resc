@@ -647,9 +647,6 @@ class ThermometerWidget extends StatefulWidget {
   /// Whether to trigger mandatory haptic vibration on critical danger threshold (default: true).
   final bool enableAlertVibration;
 
-  /// Whether to play system audio alert on critical danger threshold (default: true).
-  final bool enableAlertSound;
-
   /// Callback when critical temperature alert is triggered.
   final void Function(double celsius, bool isCriticalMax)? onAlertTriggered;
 
@@ -768,9 +765,8 @@ class ThermometerWidget extends StatefulWidget {
     this.humidLabel,
     this.criticalMaxCelsius,
     this.criticalMinCelsius,
-    this.enableAlertVibration = true,
-    this.enableAlertSound = true,
     this.onAlertTriggered,
+    this.enableAlertVibration = true,
     this.customAlertSoundPlayer,
     this.showAlertVisualPulse = true,
     this.thresholds = const ThermometerThresholds(),
@@ -2308,6 +2304,13 @@ class _ThermometerWidgetState extends State<ThermometerWidget>
       duration: const Duration(milliseconds: 600),
     );
 
+    // Mandatory haptic per pulse beat: vibrates on every pulse peak while critical
+    _alertPulseController.addStatusListener((status) {
+      if (status == AnimationStatus.reverse) {
+        HapticFeedback.vibrate();
+      }
+    });
+
     _alertPulseAnimation = Tween<double>(begin: 0.2, end: 1.0).animate(
       CurvedAnimation(
         parent: _alertPulseController,
@@ -2472,9 +2475,6 @@ class _ThermometerWidgetState extends State<ThermometerWidget>
         if (widget.enableAlertVibration) {
           HapticFeedback.heavyImpact();
           HapticFeedback.vibrate();
-        }
-        if (widget.enableAlertSound) {
-          SystemSound.play(SystemSoundType.alert);
         }
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
