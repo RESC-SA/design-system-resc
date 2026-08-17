@@ -37,7 +37,7 @@ class DataPreviewCard extends StatelessWidget {
   const DataPreviewCard({
     super.key,
     required this.title,
-    required this.value,
+    this.value,
     this.lottieTitle,
     this.lottieWidget,
     this.backgroundColor,
