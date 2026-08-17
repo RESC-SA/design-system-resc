@@ -18,17 +18,17 @@ import 'package:flutter/material.dart';
 class DataPreviewCard extends StatelessWidget {
   final String title;
 
-  final String value;
+  final String? value;
   final String? lottieTitle;
   final Widget? lottieWidget;
   final Color? backgroundColor;
   final TextStyle? titleStyle;
   final TextStyle? valueStyle;
   final TextStyle? lottieTitleStyle;
-  final EdgeInsets padding;
-  final double borderRadius;
-  final double elevation;
-  final String valueLabel;
+  final EdgeInsets? padding;
+  final double? borderRadius;
+  final double? elevation;
+  final String? valueLabel;
   final String? status;
   final Color? statusColor;
   final String? description;
@@ -44,10 +44,10 @@ class DataPreviewCard extends StatelessWidget {
     this.titleStyle,
     this.valueStyle,
     this.lottieTitleStyle,
-    this.padding = const EdgeInsets.all(16),
-    this.borderRadius = 16,
-    this.elevation = 2,
-    this.valueLabel = 'Value',
+    this.padding,
+    this.borderRadius,
+    this.elevation,
+    this.valueLabel,
     this.status,
     this.statusColor,
     this.description,
@@ -64,7 +64,7 @@ class DataPreviewCard extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: defaultBackgroundColor,
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: BorderRadius.circular(borderRadius ?? 16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -155,7 +155,7 @@ class DataPreviewCard extends StatelessWidget {
                     ),
                     Expanded(
                       child: Text(
-                        value,
+                        value ?? '',
                         style: valueStyle ??
                             theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
