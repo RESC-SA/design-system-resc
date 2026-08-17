@@ -40,6 +40,7 @@ class DataPreviewCard extends StatelessWidget {
   final Widget? valueWidget;
   final bool showDescription;
   final Widget? descriptionWidget;
+  final Widget? leftWidget;
   const DataPreviewCard({
     super.key,
     required this.title,
@@ -65,6 +66,7 @@ class DataPreviewCard extends StatelessWidget {
     this.valueWidget,
     this.showDescription = true,
     this.descriptionWidget,
+    this.leftWidget,
   });
 
   @override
@@ -93,6 +95,7 @@ class DataPreviewCard extends StatelessWidget {
             const SizedBox(width: 12),
           ],
           // Left side: Title, Value, Description
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,51 +141,58 @@ class DataPreviewCard extends StatelessWidget {
                   const SizedBox(height: 8),
                 ],
                 // Value label and value (or a custom value widget)
-                if (valueWidget != null)
-                  valueWidget!
-                else if (showValue) ...[
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
+                if (leftWidget != null)
+                  leftWidget!
+                else
+                  Column(
                     children: [
-                      Text(
-                        '$valueLabel: ',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.6),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          value ?? '',
-                          style: valueStyle ??
-                              theme.textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.primary,
+                      if (valueWidget != null)
+                        valueWidget!
+                      else if (showValue) ...[
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              '$valueLabel: ',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurface
+                                    .withValues(alpha: 0.6),
                               ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                value ?? '',
+                                style: valueStyle ??
+                                    theme.textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      // Description (custom widget or default text)
+                      if (descriptionWidget != null) ...[
+                        const SizedBox(height: 4),
+                        descriptionWidget!,
+                      ] else if (showDescription && description != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          description!,
+                          style: descriptionStyle ??
+                              theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurface
+                                    .withValues(alpha: 0.6),
+                              ),
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ),
+                      ],
                     ],
                   ),
-                ],
-                // Description (custom widget or default text)
-                if (descriptionWidget != null) ...[
-                  const SizedBox(height: 4),
-                  descriptionWidget!,
-                ] else if (showDescription && description != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    description!,
-                    style: descriptionStyle ??
-                        theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.6),
-                        ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
               ],
             ),
           ),

@@ -82,6 +82,7 @@ class _ThermometerPageState extends State<ThermometerPage> {
   // Humidity Feature (الرطوبة)
   double _humidity = 58.0;
   bool _showHumidity = true;
+  bool _showTempInHumidityPill = false;
   ds.ThermometerHumidityPosition _humidityPosition =
       ds.ThermometerHumidityPosition.bottomPill;
 
@@ -381,6 +382,7 @@ class _ThermometerPageState extends State<ThermometerPage> {
                     humidity: _humidity,
                     showHumidity: _showHumidity,
                     humidityPosition: _humidityPosition,
+                    showTemperatureInHumidityPill: _showTempInHumidityPill,
                     topWidgetSpacing: _topWidgetSpacing,
                     humiditySpacing: _humiditySpacing,
                     criticalMaxCelsius:
@@ -619,6 +621,29 @@ class _ThermometerPageState extends State<ThermometerPage> {
                                         ds.ThermometerHumidityPosition.sideDial;
                                   });
                                 }
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                  '🌡️ عرض درجة الحرارة بدل الرطوبة في البادج',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13.5)),
+                            ),
+                            Switch.adaptive(
+                              value: _showTempInHumidityPill,
+                              activeTrackColor:
+                                  const Color(0xFFFF5252).withValues(alpha: 0.4),
+                              activeThumbColor: const Color(0xFFFF5252),
+                              onChanged: (val) {
+                                setState(() {
+                                  _showTempInHumidityPill = val;
+                                });
                               },
                             ),
                           ],
