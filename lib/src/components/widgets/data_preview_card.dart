@@ -40,6 +40,7 @@ class DataPreviewCard extends StatelessWidget {
   final Widget? valueWidget;
   final bool showDescription;
   final Widget? descriptionWidget;
+  final Widget? leftWidget;
   const DataPreviewCard({
     super.key,
     required this.title,
@@ -65,6 +66,7 @@ class DataPreviewCard extends StatelessWidget {
     this.valueWidget,
     this.showDescription = true,
     this.descriptionWidget,
+    this.leftWidget,
   });
 
   @override
@@ -93,11 +95,14 @@ class DataPreviewCard extends StatelessWidget {
             const SizedBox(width: 12),
           ],
           // Left side: Title, Value, Description
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
+          if (leftWidget != null)
+            leftWidget!
+          else
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
                 // Title (custom widget or default title row + status chip)
                 if (titleWidget != null)
                   titleWidget!
