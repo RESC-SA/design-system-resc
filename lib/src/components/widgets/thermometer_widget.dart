@@ -587,6 +587,10 @@ class ThermometerWidget extends StatefulWidget {
   /// Spacing between the bottom bulb and the humidity widget (default: 14.0).
   final double humiditySpacing;
 
+  /// When true, the humidity slot below the bulb (bottomPill) displays the
+  /// current temperature instead of humidity (default: false).
+  final bool showTemperatureInHumidityPill;
+
   /// Whether to display Fahrenheit scale on the left.
   final bool showFahrenheit;
 
@@ -743,6 +747,7 @@ class ThermometerWidget extends StatefulWidget {
     this.height,
     this.topWidgetSpacing = 12.0,
     this.humiditySpacing = 14.0,
+    this.showTemperatureInHumidityPill = false,
     this.showFahrenheit = true,
     this.showCelsius = true,
     this.showMinorLabels = true,
@@ -2119,24 +2124,32 @@ class _ThermometerWidgetState extends State<ThermometerWidget>
             Widget? resolvedHumidityWidget;
             final isHumidityEnabled =
                 widget.showHumidity ?? (widget.humidity != null);
-            if (isHumidityEnabled &&
-                widget.humidity != null &&
-                widget.humidityPosition != ThermometerHumidityPosition.none) {
-              final humVal = widget.humidity!.clamp(0.0, 100.0);
-              final humState = widget.humidityThresholds.getState(humVal);
+            if (widget.humidityPosition != ThermometerHumidityPosition.none &&
+                (widget.showTemperatureInHumidityPill ||
+                    (isHumidityEnabled && widget.humidity != null))) {
+              final humVal = widget.humidity?.clamp(0.0, 100.0);
+              final humState = humVal != null
+                  ? widget.humidityThresholds.getState(humVal)
+                  : null;
 
-              if (widget.humidityWidgetBuilder != null) {
+              if (humVal != null && widget.humidityWidgetBuilder != null) {
                 resolvedHumidityWidget = widget.humidityWidgetBuilder!(
                   context,
                   humVal,
-                  humState,
+                  humState!,
                 );
               } else if (widget.humidityPosition ==
                   ThermometerHumidityPosition.bottomPill) {
-                resolvedHumidityWidget =
-                    _buildDefaultHumidityPill(humVal, isDark, scaleFactor);
+                if (widget.showTemperatureInHumidityPill) {
+                  resolvedHumidityWidget = _buildDefaultTemperaturePill(
+                      animatedCelsius, isDark, scaleFactor);
+                } else if (humVal != null) {
+                  resolvedHumidityWidget =
+                      _buildDefaultHumidityPill(humVal, isDark, scaleFactor);
+                }
               } else if (widget.humidityPosition ==
-                  ThermometerHumidityPosition.sideDial) {
+                      ThermometerHumidityPosition.sideDial &&
+                  humVal != null) {
                 resolvedHumidityWidget = HygrometerWidget(
                   humidity: humVal,
                   size: (56.0 * scaleFactor).clamp(42.0, 80.0),
@@ -2382,6 +2395,107 @@ class _ThermometerWidgetState extends State<ThermometerWidget>
           SizedBox(width: 4 * scaleFactor),
           Text(
             '${humidity.toStringAsFixed(0)}${widget.humidityUnitLabel}',
+            style: TextStyle(
+              fontSize: (11.5 * scaleFactor).clamp(8.5, 16.0),
+              fontWeight: FontWeight.w800,
+              color: textColor,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          if (stateLabel.isNotEmpty) ...[
+            SizedBox(width: 5 * scaleFactor),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: 5 * scaleFactor,
+                vertical: 1.5 * scaleFactor,
+              ),
+              decoration: BoxDecoration(
+                color: stateColor.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(8 * scaleFactor),
+              ),
+              child: Text(
+                stateLabel,
+                style: TextStyle(
+                  fontSize: (9.0 * scaleFactor).clamp(7.0, 13.0),
+                  fontWeight: FontWeight.bold,
+                  color: stateColor,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Temperature pill shown in the bottom slot when [ThermometerWidget.showTemperatureInHumidityPill]
+  /// is true: displays the live temperature in the active unit instead of humidity
+  Widget _buildDefaultTemperaturePill(
+      double celsius, bool isDark, double scaleFactor) {
+    final state = widget.thresholds.getState(celsius);
+    final (stateColor, stateLabel) = switch (state) {
+      ThermometerTemperatureState.cool => (
+          const Color(0xFF00B0FF),
+          'بارد'
+        ),
+      ThermometerTemperatureState.normal => (
+          const Color(0xFF00E676),
+          'مثالي'
+        ),
+      ThermometerTemperatureState.warm => (
+          const Color(0xFFFFB300),
+          'دافئ'
+        ),
+      ThermometerTemperatureState.hot => (
+          const Color(0xFFFF5252),
+          'حار'
+        ),
+    };
+
+    final showF = widget.showFahrenheit && !widget.showCelsius;
+    final fahrenheit = celsius * 9 / 5 + 32;
+    final valueText = showF
+        ? '${fahrenheit.toStringAsFixed(0)}${widget.fahrenheitUnitLabel}'
+        : '${celsius.toStringAsFixed(0)}${widget.celsiusUnitLabel}';
+
+    final bgColor = widget.colors?.humidityBackground ??
+        (isDark ? const Color(0xFF1E2430) : Colors.white);
+    final borderColor =
+        widget.colors?.humidityBorder ?? stateColor.withValues(alpha: 0.55);
+    final textColor = widget.colors?.humidityText ??
+        (isDark ? Colors.white : const Color(0xFF0F172A));
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: (10.0 * scaleFactor).clamp(8.0, 16.0),
+        vertical: (5.0 * scaleFactor).clamp(4.0, 10.0),
+      ),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16 * scaleFactor),
+        border: Border.all(
+          color: borderColor,
+          width: 1.4 * scaleFactor,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
+            blurRadius: 8 * scaleFactor,
+            offset: Offset(0, 3 * scaleFactor),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.thermostat_rounded,
+            color: stateColor,
+            size: (15.0 * scaleFactor).clamp(11.0, 22.0),
+          ),
+          SizedBox(width: 4 * scaleFactor),
+          Text(
+            valueText,
             style: TextStyle(
               fontSize: (11.5 * scaleFactor).clamp(8.5, 16.0),
               fontWeight: FontWeight.w800,

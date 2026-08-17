@@ -78,6 +78,7 @@
 | `height` | `double?` | `null` | الارتفاع المخصص (يتكيف تلقائياً مع الحاوية إن لم يُحدد). |
 | `topWidgetSpacing` | `double` | `12.0` | المسافة بالبكسل بين أعلى زجاج المقياس والودجيت العلوية. |
 | `humiditySpacing` | `double` | `14.0` | المسافة بالبكسل بين أسفل مستودع الزجاج الكروي وودجيت الرطوبة. |
+| `showTemperatureInHumidityPill` | `bool` | `false` | عند التفعيل، يعرض البادج السفلي (Bottom Pill) درجة الحرارة الحية (بالوحدة النشطة °C/°F) بدلاً من الرطوبة، مع لون وشريحة الحالة (بارد/مثالي/دافئ/حار). |
 | `humidity` | `double?` | `null` | نسبة الرطوبة الحالية من 0 إلى 100 (% RH). |
 | `showHumidity` | `bool?` | `null` | إظهار أو إخفاء مقياس الرطوبة تماماً. |
 | `humidityPosition` | `ThermometerHumidityPosition` | `bottomPill` | موضع وشكل ودجيت الرطوبة (`bottomPill`, `sideDial`, `none`). |
