@@ -34,6 +34,12 @@ class DataPreviewCard extends StatelessWidget {
   final String? description;
   final TextStyle? descriptionStyle;
   final Widget? leadingWidget;
+  final bool showTitle;
+  final Widget? titleWidget;
+  final bool showValue;
+  final Widget? valueWidget;
+  final bool showDescription;
+  final Widget? descriptionWidget;
   const DataPreviewCard({
     super.key,
     required this.title,
@@ -53,6 +59,12 @@ class DataPreviewCard extends StatelessWidget {
     this.description,
     this.descriptionStyle,
     this.leadingWidget,
+    this.showTitle = true,
+    this.titleWidget,
+    this.showValue = true,
+    this.valueWidget,
+    this.showDescription = true,
+    this.descriptionWidget,
   });
 
   @override
@@ -80,94 +92,85 @@ class DataPreviewCard extends StatelessWidget {
             leadingWidget!,
             const SizedBox(width: 12),
           ],
-          // Left side: Title and Value
+          // Left side: Title, Value, Description
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Status container
-                // if (status != null) ...[
-                //   Container(
-                //     padding:
-                //         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                //     decoration: BoxDecoration(
-                //       color: statusColor ??
-                //           theme.colorScheme.primary.withValues(alpha: 0.1),
-                //       borderRadius: BorderRadius.circular(6),
-                //     ),
-                //     child: Text(
-                //       status!,
-                //       style: theme.textTheme.bodySmall?.copyWith(
-                //         color: statusColor ?? theme.colorScheme.primary,
-                //         fontWeight: FontWeight.w600,
-                //         fontSize: 11,
-                //       ),
-                //     ),
-                //   ),
-                //   const SizedBox(height: 8),
-                // ],
-                // Title
-                Row(
-                  children: [
-                    Text(
-                      title,
-                      style: titleStyle ??
-                          theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.onSurface,
+                // Title (custom widget or default title row + status chip)
+                if (titleWidget != null)
+                  titleWidget!
+                else if (showTitle) ...[
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: titleStyle ??
+                            theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                      ),
+                      if (status != null) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: statusColor ??
+                                theme.colorScheme.primary
+                                    .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                    ),
-                    if (status != null) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: statusColor ??
-                              theme.colorScheme.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
+                          child: Text(
+                            status!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: statusColor ?? theme.colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
+                            ),
+                          ),
                         ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                // Value label and value (or a custom value widget)
+                if (valueWidget != null)
+                  valueWidget!
+                else if (showValue) ...[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        '$valueLabel: ',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.6),
+                        ),
+                      ),
+                      Expanded(
                         child: Text(
-                          status!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: statusColor ?? theme.colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 11,
-                          ),
+                          value ?? '',
+                          style: valueStyle ??
+                              theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.primary,
+                              ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Value label and value
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      '$valueLabel: ',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        value ?? '',
-                        style: valueStyle ??
-                            theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.primary,
-                            ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                // Description
-                if (description != null) ...[
+                  ),
+                ],
+                // Description (custom widget or default text)
+                if (descriptionWidget != null) ...[
+                  const SizedBox(height: 4),
+                  descriptionWidget!,
+                ] else if (showDescription && description != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     description!,
@@ -235,6 +238,8 @@ class DataPreviewCardCompact extends StatelessWidget {
   final Widget? leadingWidget;
   final String? status;
   final Color? statusColor;
+  final bool showTitle;
+  final Widget? valueWidget;
   const DataPreviewCardCompact({
     super.key,
     required this.title,
@@ -249,6 +254,8 @@ class DataPreviewCardCompact extends StatelessWidget {
     this.leadingWidget,
     this.status,
     this.statusColor,
+    this.showTitle = true,
+    this.valueWidget,
   });
 
   @override
@@ -285,49 +292,54 @@ class DataPreviewCardCompact extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      title,
-                      style: titleStyle ??
-                          theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
-                          ),
-                    ),
-                    if (status != null) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color:
-                              statusColor ?? Colors.grey.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          status!,
-                          style: theme.textTheme.bodySmall?.copyWith(
+                if (showTitle) ...[
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: titleStyle ??
+                            theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.7),
+                            ),
+                      ),
+                      if (status != null) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
                             color: statusColor ??
-                                theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.6),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
+                                Colors.grey.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            status!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: statusColor ??
+                                  theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.6),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: valueStyle ??
-                      theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                ),
+                  ),
+                  const SizedBox(height: 4),
+                ],
+                if (valueWidget != null)
+                  valueWidget!
+                else
+                  Text(
+                    value,
+                    style: valueStyle ??
+                        theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                  ),
               ],
             ),
           ),

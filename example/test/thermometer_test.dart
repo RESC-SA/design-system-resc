@@ -249,7 +249,6 @@ void main() {
               celsius: 42.0,
               criticalMaxCelsius: 40.0,
               enableAlertVibration: true,
-              enableAlertSound: true,
               onAlertTriggered: (c, isMax) {
                 triggeredCelsius = c;
                 isMaxTriggered = isMax;
