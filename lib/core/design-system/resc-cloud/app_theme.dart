@@ -5,7 +5,6 @@ import 'package:flutter_design_system/flutter_design_system.dart'
     hide AppColors; // Added for AppThemeExtension
 
 import 'app_colors.dart';
-import 'glass_tokens.dart';
 import 'app_radii.dart';
 
 /// **RESC IoT — Calm Saudi Premium theme.**
@@ -53,28 +52,26 @@ class AppTheme {
   // DARK
   // ────────────────────────────────────────────────────────────────────────
   static ThemeData get darkTheme {
-    // Pulled from `reports/index.html` — deep green-black canvas with glass
-    // surfaces, brand-bright green accent, and translucent borders.
+    // Solid neutral dark theme — no glass. Brand-bright green accent.
     const scheme = ColorScheme.dark(
-      primary: RescGlass.green,
+      primary: AppColors.darkPrimary,
       onPrimary: Colors.white,
       primaryContainer: Color(0xFF1F3D22),
       onPrimaryContainer: AppColors.primaryContainer,
       secondary: AppColors.secondary,
       onSecondary: AppColors.onSecondary,
-      //secondaryContainer: AppColors.secondaryDark,
-      surface: RescGlass.bg,
-      onSurface: RescGlass.textPri,
-      surfaceContainer: Color(0xFF0E1612),
-      surfaceContainerHigh: Color(0xFF131D17),
-      surfaceContainerHighest: Color(0xFF18241D),
-      onSurfaceVariant: RescGlass.textMid,
-      error: RescGlass.red,
+      surface: AppColors.darkSurface,
+      onSurface: AppColors.darkOnSurface,
+      surfaceContainer: Color(0xFF1A1A1A),
+      surfaceContainerHigh: Color(0xFF262626),
+      surfaceContainerHighest: Color(0xFF333333),
+      onSurfaceVariant: AppColors.darkNeutral60,
+      error: AppColors.error,
       onError: Colors.white,
       errorContainer: Color(0xFF4A1612),
       onErrorContainer: AppColors.errorContainer,
-      outline: RescGlass.border,
-      outlineVariant: RescGlass.borderSubtle,
+      outline: Color(0xFF3A3A3A),
+      outlineVariant: Color(0xFF2A2A2A),
       shadow: Color(0xFF000000),
       scrim: Color(0xCC000000),
     );
@@ -82,7 +79,7 @@ class AppTheme {
     return _baseTheme(
       scheme,
       Brightness.dark,
-    ).copyWith(scaffoldBackgroundColor: const Color(0xFF242423));
+    ).copyWith(scaffoldBackgroundColor: const Color(0xFF0D0D0D));
   }
 
   // ────────────────────────────────────────────────────────────────────────
@@ -120,14 +117,14 @@ class AppTheme {
         iconTheme: IconThemeData(color: s.onSurface),
       ),
 
-      // ── Cards — bordered, no shadow by default ──────────────────────────
+      // ── Cards — shadow-based depth, no border ───────────────────────────
       cardTheme: CardThemeData(
         elevation: 0,
-        color: isDark ? AppColors.darkSurfaceRaised : Colors.transparent,
+        color:
+            isDark ? AppColors.darkSurfaceRaised : AppColors.backgroundTertiary,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadii.card,
-          side: BorderSide(color: s.outline, width: 1),
         ),
         margin: EdgeInsets.zero,
       ),
@@ -176,9 +173,8 @@ class AppTheme {
       // ── Inputs ──────────────────────────────────────────────────────────
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark
-            ? AppColors.darkSurfaceSunken
-            : AppColors.surfaceSunken,
+        fillColor:
+            isDark ? AppColors.darkSurfaceSunken : AppColors.surfaceSunken,
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -267,16 +263,15 @@ class AppTheme {
 
       // ── Chips ───────────────────────────────────────────────────────────
       chipTheme: ChipThemeData(
-        backgroundColor: isDark
-            ? AppColors.darkSurfaceRaised
-            : AppColors.surfaceSunken,
+        backgroundColor:
+            isDark ? AppColors.darkSurfaceRaised : AppColors.surfaceSunken,
         selectedColor: s.primaryContainer,
         labelStyle: TextStyle(
           color: s.onSurface,
           fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
-        side: BorderSide(color: s.outline, width: 1),
+        side: BorderSide.none,
         shape: const RoundedRectangleBorder(borderRadius: AppRadii.chip),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       ),
@@ -342,12 +337,10 @@ class AppTheme {
       // ── Progress indicators ─────────────────────────────────────────────
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: s.primary,
-        linearTrackColor: isDark
-            ? AppColors.darkNeutral30
-            : AppColors.surfaceSunken,
-        circularTrackColor: isDark
-            ? AppColors.darkNeutral30
-            : AppColors.surfaceSunken,
+        linearTrackColor:
+            isDark ? AppColors.darkNeutral30 : AppColors.surfaceSunken,
+        circularTrackColor:
+            isDark ? AppColors.darkNeutral30 : AppColors.surfaceSunken,
       ),
 
       // ── Cupertino integration (so iOS gets warm theme too) ──────────────

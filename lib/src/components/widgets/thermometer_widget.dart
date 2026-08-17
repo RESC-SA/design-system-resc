@@ -1,95 +1,206 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// Temperature state classification
-enum ThermometerTemperatureState {
-  /// Cold / Freezing / Cryo temperature
-  cool,
+/// A standalone 100% photorealistic circular 3D Hygrometer / Humidity Gauge widget.
+///
+/// Features:
+/// - Radial glowing liquid arc representing Relative Humidity (0% - 100% RH)
+/// - 3D glass lens bezel with specular reflections and ambient drop shadow
+/// - 100% customizable colors and state text strings
+class HygrometerWidget extends StatelessWidget {
+  final double humidity;
+  final double size;
+  final ThermometerHumidityThresholds thresholds;
+  final String? label;
+  final String unitLabel;
+  final String? dryLabel;
+  final String? comfortableLabel;
+  final String? humidLabel;
+  final Color? backgroundColor;
+  final Color? borderColor;
+  final Color? textColor;
+  final Color? iconColor;
+  final Color? arcColor;
+  final bool showStatusBadge;
 
-  /// Comfortable / Room / Normal temperature
-  normal,
-
-  /// Warm temperature
-  warm,
-
-  /// Hot / Extreme heat temperature
-  hot,
-}
-
-/// Humidity state classification
-enum ThermometerHumidityState {
-  /// Dry / Low humidity (< 30% RH)
-  dry,
-
-  /// Ideal / Comfortable humidity (30% - 60% RH)
-  comfortable,
-
-  /// High / Humid (> 60% RH)
-  humid,
-}
-
-/// Customizable humidity thresholds
-class ThermometerHumidityThresholds {
-  /// Threshold below which humidity is considered dry (default: 30.0%)
-  final double dryThreshold;
-
-  /// Threshold above which humidity is considered humid (default: 60.0%)
-  final double humidThreshold;
-
-  const ThermometerHumidityThresholds({
-    this.dryThreshold = 30.0,
-    this.humidThreshold = 60.0,
+  const HygrometerWidget({
+    super.key,
+    required this.humidity,
+    this.size = 90,
+    this.thresholds = const ThermometerHumidityThresholds(),
+    this.label,
+    this.unitLabel = '%',
+    this.dryLabel,
+    this.comfortableLabel,
+    this.humidLabel,
+    this.backgroundColor,
+    this.borderColor,
+    this.textColor,
+    this.iconColor,
+    this.arcColor,
+    this.showStatusBadge = true,
   });
 
-  /// Evaluates which humidity zone a value belongs to
-  ThermometerHumidityState getState(double humidity) {
-    if (humidity < dryThreshold) return ThermometerHumidityState.dry;
-    if (humidity <= humidThreshold) return ThermometerHumidityState.comfortable;
-    return ThermometerHumidityState.humid;
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final clampedHumidity = humidity.clamp(0.0, 100.0);
+    final state = thresholds.getState(clampedHumidity);
+
+    final (defaultStateColor, defaultStateLabel) = switch (state) {
+      ThermometerHumidityState.dry => (
+          const Color(0xFFFF9800),
+          dryLabel ?? 'جاف'
+        ),
+      ThermometerHumidityState.comfortable => (
+          const Color(0xFF00E676),
+          comfortableLabel ?? 'مثالي'
+        ),
+      ThermometerHumidityState.humid => (
+          const Color(0xFF00B0FF),
+          humidLabel ?? 'رطب'
+        ),
+    };
+
+    final effectiveBg =
+        backgroundColor ?? (isDark ? const Color(0xFF1B202A) : Colors.white);
+    final effectiveBorder = borderColor ??
+        (isDark ? const Color(0xFF333D4F) : const Color(0xFFCBD5E1));
+    final effectiveText =
+        textColor ?? (isDark ? Colors.white : const Color(0xFF0F172A));
+    final effectiveIcon = iconColor ?? defaultStateColor;
+    final effectiveArc = arcColor ?? defaultStateColor;
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: effectiveBg,
+        border: Border.all(
+          color: effectiveBorder,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Radial Progress Arc Painter
+          CustomPaint(
+            size: Size(size, size),
+            painter: _HygrometerArcPainter(
+              progress: clampedHumidity / 100.0,
+              accentColor: effectiveArc,
+              isDark: isDark,
+            ),
+          ),
+
+          // Center Info (Scales cleanly within available size)
+          Padding(
+            padding: EdgeInsets.all(size * 0.12),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.water_drop_rounded,
+                    color: effectiveIcon,
+                    size: (size * 0.22).clamp(12.0, 24.0),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    '${clampedHumidity.toStringAsFixed(0)}$unitLabel',
+                    style: TextStyle(
+                      fontSize: (size * 0.22).clamp(10.0, 20.0),
+                      fontWeight: FontWeight.w800,
+                      color: effectiveText,
+                      letterSpacing: -0.2,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                  if (showStatusBadge && defaultStateLabel.isNotEmpty) ...[
+                    const SizedBox(height: 1),
+                    Text(
+                      defaultStateLabel,
+                      style: TextStyle(
+                        fontSize: (size * 0.12).clamp(8.0, 11.0),
+                        fontWeight: FontWeight.bold,
+                        color: defaultStateColor,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
-/// Display position for the humidity badge / dial
-enum ThermometerHumidityPosition {
-  /// Sleek floating glass badge/pill below the bulb
-  bottomPill,
+/// Fully customizable colors for all parts of the thermometer, scale, glass, readouts, and alerts
+class ThermometerColors {
+  final Color? fluidPrimary;
+  final Color? fluidDeep;
+  final Color? fluidHighlight;
+  final Color? fluidGlow;
+  final Color? majorTick;
+  final Color? mediumTick;
+  final Color? minorTick;
+  final Color? majorText;
+  final Color? mediumText;
+  final Color? minorText;
+  final Color? unitHeader;
+  final Color? marker;
+  final Color? glassBezel;
+  final Color? glassHighlight;
+  final Color? glassBore;
+  final Color? readoutBackground;
+  final Color? readoutBorder;
+  final Color? readoutText;
+  final Color? humidityBackground;
+  final Color? humidityBorder;
+  final Color? humidityText;
+  final Color? humidityIcon;
+  final Color? alertGlow;
 
-  /// Side radial circular hygrometer dial
-  sideDial,
-
-  /// No humidity badge
-  none,
-}
-
-/// Customizable temperature thresholds / ranges
-class ThermometerThresholds {
-  /// Maximum temperature considered cool (default: 18.0°C)
-  final double cool;
-
-  /// Maximum temperature considered normal / comfortable (default: 27.0°C)
-  final double normal;
-
-  /// Maximum temperature considered warm (default: 36.0°C)
-  final double warm;
-
-  /// Anything above warm is considered hot (default: 45.0°C)
-  final double hot;
-
-  const ThermometerThresholds({
-    this.cool = 18.0,
-    this.normal = 27.0,
-    this.warm = 36.0,
-    this.hot = 45.0,
+  const ThermometerColors({
+    this.fluidPrimary,
+    this.fluidDeep,
+    this.fluidHighlight,
+    this.fluidGlow,
+    this.majorTick,
+    this.mediumTick,
+    this.minorTick,
+    this.majorText,
+    this.mediumText,
+    this.minorText,
+    this.unitHeader,
+    this.marker,
+    this.glassBezel,
+    this.glassHighlight,
+    this.glassBore,
+    this.readoutBackground,
+    this.readoutBorder,
+    this.readoutText,
+    this.humidityBackground,
+    this.humidityBorder,
+    this.humidityText,
+    this.humidityIcon,
+    this.alertGlow,
   });
-
-  /// Evaluates which thermal zone a temperature belongs to
-  ThermometerTemperatureState getState(double celsius) {
-    if (celsius <= cool) return ThermometerTemperatureState.cool;
-    if (celsius <= normal) return ThermometerTemperatureState.normal;
-    if (celsius <= warm) return ThermometerTemperatureState.warm;
-    return ThermometerTemperatureState.hot;
-  }
 }
 
 /// Available fluid color themes for the thermometer
@@ -152,57 +263,49 @@ enum ThermometerFluidTheme {
   }
 }
 
-/// Fully customizable colors for all parts of the thermometer, scale, glass, readouts, and alerts
-class ThermometerColors {
-  final Color? fluidPrimary;
-  final Color? fluidDeep;
-  final Color? fluidHighlight;
-  final Color? fluidGlow;
-  final Color? majorTick;
-  final Color? mediumTick;
-  final Color? minorTick;
-  final Color? majorText;
-  final Color? mediumText;
-  final Color? minorText;
-  final Color? unitHeader;
-  final Color? marker;
-  final Color? glassBezel;
-  final Color? glassHighlight;
-  final Color? glassBore;
-  final Color? readoutBackground;
-  final Color? readoutBorder;
-  final Color? readoutText;
-  final Color? humidityBackground;
-  final Color? humidityBorder;
-  final Color? humidityText;
-  final Color? humidityIcon;
-  final Color? alertGlow;
+/// Display position for the humidity badge / dial
+enum ThermometerHumidityPosition {
+  /// Sleek floating glass badge/pill below the bulb
+  bottomPill,
 
-  const ThermometerColors({
-    this.fluidPrimary,
-    this.fluidDeep,
-    this.fluidHighlight,
-    this.fluidGlow,
-    this.majorTick,
-    this.mediumTick,
-    this.minorTick,
-    this.majorText,
-    this.mediumText,
-    this.minorText,
-    this.unitHeader,
-    this.marker,
-    this.glassBezel,
-    this.glassHighlight,
-    this.glassBore,
-    this.readoutBackground,
-    this.readoutBorder,
-    this.readoutText,
-    this.humidityBackground,
-    this.humidityBorder,
-    this.humidityText,
-    this.humidityIcon,
-    this.alertGlow,
+  /// Side radial circular hygrometer dial
+  sideDial,
+
+  /// No humidity badge
+  none,
+}
+
+/// Humidity state classification
+enum ThermometerHumidityState {
+  /// Dry / Low humidity (< 30% RH)
+  dry,
+
+  /// Ideal / Comfortable humidity (30% - 60% RH)
+  comfortable,
+
+  /// High / Humid (> 60% RH)
+  humid,
+}
+
+/// Customizable humidity thresholds
+class ThermometerHumidityThresholds {
+  /// Threshold below which humidity is considered dry (default: 30.0%)
+  final double dryThreshold;
+
+  /// Threshold above which humidity is considered humid (default: 60.0%)
+  final double humidThreshold;
+
+  const ThermometerHumidityThresholds({
+    this.dryThreshold = 30.0,
+    this.humidThreshold = 60.0,
   });
+
+  /// Evaluates which humidity zone a value belongs to
+  ThermometerHumidityState getState(double humidity) {
+    if (humidity < dryThreshold) return ThermometerHumidityState.dry;
+    if (humidity <= humidThreshold) return ThermometerHumidityState.comfortable;
+    return ThermometerHumidityState.humid;
+  }
 }
 
 /// Readout display styles for the thermometer
@@ -218,6 +321,221 @@ enum ThermometerReadoutStyle {
 
   /// Clean minimal badge
   simpleBadge,
+}
+
+/// Temperature state classification
+enum ThermometerTemperatureState {
+  /// Cold / Freezing / Cryo temperature
+  cool,
+
+  /// Comfortable / Room / Normal temperature
+  normal,
+
+  /// Warm temperature
+  warm,
+
+  /// Hot / Extreme heat temperature
+  hot,
+}
+
+/// Customizable temperature thresholds / ranges
+class ThermometerThresholds {
+  /// Maximum temperature considered cool (default: 18.0°C)
+  final double cool;
+
+  /// Maximum temperature considered normal / comfortable (default: 27.0°C)
+  final double normal;
+
+  /// Maximum temperature considered warm (default: 36.0°C)
+  final double warm;
+
+  /// Anything above warm is considered hot (default: 45.0°C)
+  final double hot;
+
+  const ThermometerThresholds({
+    this.cool = 18.0,
+    this.normal = 27.0,
+    this.warm = 36.0,
+    this.hot = 45.0,
+  });
+
+  /// Evaluates which thermal zone a temperature belongs to
+  ThermometerTemperatureState getState(double celsius) {
+    if (celsius <= cool) return ThermometerTemperatureState.cool;
+    if (celsius <= normal) return ThermometerTemperatureState.normal;
+    if (celsius <= warm) return ThermometerTemperatureState.warm;
+    return ThermometerTemperatureState.hot;
+  }
+}
+
+/// Standalone 3-tick 3D Cylindrical Rolling Wheel Readout Widget
+/// Can be used anywhere in cards, dashboards, or next to sliders.
+class ThermometerWheelReadout extends StatelessWidget {
+  final double celsius;
+  final String? unit;
+  final Color? activeColor;
+  final double width;
+  final double height;
+
+  const ThermometerWheelReadout({
+    super.key,
+    required this.celsius,
+    this.unit = '°C',
+    this.activeColor,
+    this.width = 104,
+    this.height = 68,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = activeColor ?? Theme.of(context).colorScheme.primary;
+
+    return Container(
+      width: width,
+      height: height,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: isDark
+              ? [
+                  const Color(0xFF13161C),
+                  const Color(0xFF222834),
+                  const Color(0xFF2C3444),
+                  const Color(0xFF222834),
+                  const Color(0xFF13161C),
+                ]
+              : [
+                  const Color(0xFFE2E8F0),
+                  const Color(0xFFF8FAFC),
+                  const Color(0xFFFFFFFF),
+                  const Color(0xFFF8FAFC),
+                  const Color(0xFFE2E8F0),
+                ],
+          stops: const [0.0, 0.22, 0.5, 0.78, 1.0],
+        ),
+        border: Border.all(
+          color: primary.withValues(alpha: 0.35),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          // ─── Top Faded Tick (60% faded) ───
+          Expanded(
+            flex: 2,
+            child: Opacity(
+              opacity: 0.40, // 60% faded
+              child: Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 1.5,
+                    color: isDark ? Colors.white70 : Colors.black54,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '${(celsius + 1).toStringAsFixed(0)}°',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white70 : Colors.black54,
+                          height: 1.1,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ─── Center Prominent Active Tick (100% clarity) ───
+          Expanded(
+            flex: 3,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  width: 14,
+                  height: 3.0,
+                  decoration: BoxDecoration(
+                    color: primary,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '${celsius.toStringAsFixed(1)}${unit ?? ''}',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        letterSpacing: 0.3,
+                        height: 1.1,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ─── Bottom Faded Tick (60% faded) ───
+          Expanded(
+            flex: 4,
+            child: Opacity(
+              opacity: 0.40, // 60% faded
+              child: Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 1.5,
+                    color: isDark ? Colors.white70 : Colors.black54,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '${(celsius - 1).toStringAsFixed(0)}°',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white70 : Colors.black54,
+                          height: 1.1,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// A 100% photorealistic glass thermometer widget with precision graduated scale (ruler/wheel).
@@ -391,10 +709,12 @@ class ThermometerWidget extends StatefulWidget {
   final bool autoTheme;
 
   /// Optional dynamic builder to resolve fluid theme based on live temperature and thermal state.
-  final ThermometerFluidTheme Function(double celsius, ThermometerTemperatureState state)? fluidThemeBuilder;
+  final ThermometerFluidTheme Function(
+      double celsius, ThermometerTemperatureState state)? fluidThemeBuilder;
 
   /// Optional dynamic builder to resolve full ThermometerColors based on live temperature and thermal state.
-  final ThermometerColors Function(double celsius, ThermometerTemperatureState state)? colorsBuilder;
+  final ThermometerColors Function(
+      double celsius, ThermometerTemperatureState state)? colorsBuilder;
 
   /// Callback when thermal state changes (cool, normal, warm, hot).
   final ValueChanged<ThermometerTemperatureState>? onStateChanged;
@@ -471,497 +791,70 @@ class ThermometerWidget extends StatefulWidget {
   State<ThermometerWidget> createState() => _ThermometerWidgetState();
 }
 
-class _ThermometerWidgetState extends State<ThermometerWidget>
-    with TickerProviderStateMixin {
-  late AnimationController _animController;
-  late Animation<double> _animValue;
+class _HygrometerArcPainter extends CustomPainter {
+  final double progress;
+  final Color accentColor;
+  final bool isDark;
 
-  late AnimationController _alertPulseController;
-  late Animation<double> _alertPulseAnimation;
-
-  double _currentCelsius = 32.0;
-  bool _isDangerActive = false;
-  DateTime? _lastAlertTime;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentCelsius = _resolveInitialCelsius();
-
-    _animController = AnimationController(
-      vsync: this,
-      duration: widget.animationDuration,
-    );
-
-    _animValue = Tween<double>(
-      begin: _currentCelsius,
-      end: _currentCelsius,
-    ).animate(CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeOutCubic,
-    ));
-
-    _alertPulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-
-    _alertPulseAnimation = Tween<double>(begin: 0.2, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _alertPulseController,
-        curve: Curves.easeInOut,
-      ),
-    );
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _checkDangerAlert(_currentCelsius);
-      }
-    });
-  }
-
-  double _resolveInitialCelsius() {
-    if (widget.celsius != null) {
-      return widget.celsius!.clamp(widget.minCelsius, widget.maxCelsius);
-    }
-    if (widget.fahrenheit != null) {
-      return ((widget.fahrenheit! - 32) * 5 / 9)
-          .clamp(widget.minCelsius, widget.maxCelsius);
-    }
-    return 32.0;
-  }
+  _HygrometerArcPainter({
+    required this.progress,
+    required this.accentColor,
+    required this.isDark,
+  });
 
   @override
-  void didUpdateWidget(ThermometerWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final targetCelsius = _resolveInitialCelsius();
-    if ((targetCelsius - _currentCelsius).abs() > 0.05) {
-      _animValue = Tween<double>(
-        begin: _currentCelsius,
-        end: targetCelsius,
-      ).animate(CurvedAnimation(
-        parent: _animController,
-        curve: Curves.easeOutCubic,
-      ));
-      _animController.forward(from: 0.0);
-      _currentCelsius = targetCelsius;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _checkDangerAlert(targetCelsius);
-      }
-    });
-  }
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width * 0.42;
+    const strokeWidth = 3.5;
 
-  @override
-  void dispose() {
-    _animController.dispose();
-    _alertPulseController.dispose();
-    super.dispose();
-  }
+    // Track Background
+    final trackPaint = Paint()
+      ..color = (isDark ? const Color(0xFF2C3545) : const Color(0xFFE2E8F0))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
 
-  void _checkDangerAlert(double celsius) {
-    final isMaxCritical = widget.criticalMaxCelsius != null &&
-        celsius >= widget.criticalMaxCelsius!;
-    final isMinCritical = widget.criticalMinCelsius != null &&
-        celsius <= widget.criticalMinCelsius!;
-    final isCritical = isMaxCritical || isMinCritical;
+    // Arc starts from -220 degrees to +40 degrees (260 degree sweep)
+    const startAngle = math.pi * 0.75;
+    const sweepTotal = math.pi * 1.5;
 
-    if (isCritical) {
-      if (!_isDangerActive) {
-        _isDangerActive = true;
-        _alertPulseController.repeat(reverse: true);
-      }
-
-      // Throttle sound/vibration so it doesn't spam on continuous sensor streams (at most every 700ms)
-      final now = DateTime.now();
-      if (_lastAlertTime == null ||
-          now.difference(_lastAlertTime!).inMilliseconds > 700) {
-        _lastAlertTime = now;
-
-        if (widget.enableAlertVibration) {
-          HapticFeedback.heavyImpact();
-          HapticFeedback.vibrate();
-        }
-        if (widget.enableAlertSound) {
-          SystemSound.play(SystemSoundType.alert);
-        }
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            widget.onAlertTriggered?.call(celsius, isMaxCritical);
-            widget.customAlertSoundPlayer?.call();
-          }
-        });
-      }
-    } else {
-      if (_isDangerActive) {
-        _isDangerActive = false;
-        _alertPulseController.stop();
-        _alertPulseController.reset();
-      }
-    }
-  }
-
-  void _handleInteraction(Offset localPosition, Size size) {
-    if (!widget.interactive && widget.onChanged == null) return;
-
-    final h = size.height;
-    final tubeTop = h * 0.09;
-    final tubeBottom = h * 0.84;
-    final span = tubeBottom - tubeTop;
-
-    // Invert Y: top is maxCelsius, bottom is minCelsius
-    final clampedY = localPosition.dy.clamp(tubeTop, tubeBottom);
-    final progress = (tubeBottom - clampedY) / span; // 0.0 (min) to 1.0 (max)
-    final newCelsius =
-        widget.minCelsius + progress * (widget.maxCelsius - widget.minCelsius);
-
-    setState(() {
-      _currentCelsius = newCelsius;
-    });
-
-    _checkDangerAlert(newCelsius);
-    widget.onChanged?.call(newCelsius);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final effectiveW = widget.width ??
-            (constraints.hasBoundedWidth && constraints.maxWidth.isFinite
-                ? constraints.maxWidth
-                : 230.0);
-        final effectiveH = widget.height ??
-            (constraints.hasBoundedHeight && constraints.maxHeight.isFinite
-                ? constraints.maxHeight
-                : 440.0);
-
-        final scaleFactor =
-            (math.min(effectiveW / 220, effectiveH / 420)).clamp(0.45, 2.5);
-
-        // Smart horizontal alignment if only one scale is displayed
-        final double stemAlignmentX;
-        if (widget.showCelsius && !widget.showFahrenheit) {
-          stemAlignmentX = -0.3; // stem slightly left, Celsius scale on right
-        } else if (!widget.showCelsius && widget.showFahrenheit) {
-          stemAlignmentX = 0.3; // stem slightly right, Fahrenheit scale on left
-        } else {
-          stemAlignmentX = 0.0; // centered
-        }
-
-        return AnimatedBuilder(
-          animation: Listenable.merge([_animController, _alertPulseController]),
-          builder: (context, child) {
-            final animatedCelsius = _animController.isAnimating
-                ? _animValue.value
-                : _currentCelsius;
-            final currentFahrenheit = animatedCelsius * 9 / 5 + 32;
-            final tempState = widget.thresholds.getState(animatedCelsius);
-
-            // Dynamic fluid theme & colors resolution based on current live value
-            final ThermometerFluidTheme resolvedFluidTheme;
-            if (widget.fluidThemeBuilder != null) {
-              resolvedFluidTheme =
-                  widget.fluidThemeBuilder!(animatedCelsius, tempState);
-            } else if (widget.autoTheme) {
-              resolvedFluidTheme = ThermometerFluidTheme.fromCelsius(
-                  animatedCelsius, widget.thresholds);
-            } else {
-              resolvedFluidTheme = widget.fluidTheme;
-            }
-
-            final ThermometerColors? resolvedColors;
-            if (widget.colorsBuilder != null) {
-              resolvedColors = widget.colorsBuilder!(animatedCelsius, tempState);
-            } else {
-              resolvedColors = widget.colors;
-            }
-
-            // Custom Top Widget Slot (SVG, Lottie, or custom dynamic widget outside top of thermometer)
-            Widget? resolvedTopWidget;
-            if (widget.showSunIcon) {
-              if (widget.topWidgetBuilder != null) {
-                resolvedTopWidget = widget.topWidgetBuilder!(
-                  context,
-                  animatedCelsius,
-                  tempState,
-                );
-              } else if (widget.topWidget != null) {
-                resolvedTopWidget = widget.topWidget;
-              } else if (widget.topIcon != null) {
-                resolvedTopWidget = widget.topIcon;
-              } else {
-                resolvedTopWidget = _buildDefaultTopBadge(isDark, scaleFactor);
-              }
-            }
-
-            // Optional Humidity Widget Slot (outside bottom of thermometer)
-            Widget? resolvedHumidityWidget;
-            final isHumidityEnabled =
-                widget.showHumidity ?? (widget.humidity != null);
-            if (isHumidityEnabled &&
-                widget.humidity != null &&
-                widget.humidityPosition != ThermometerHumidityPosition.none) {
-              final humVal = widget.humidity!.clamp(0.0, 100.0);
-              final humState = widget.humidityThresholds.getState(humVal);
-
-              if (widget.humidityWidgetBuilder != null) {
-                resolvedHumidityWidget = widget.humidityWidgetBuilder!(
-                  context,
-                  humVal,
-                  humState,
-                );
-              } else if (widget.humidityPosition ==
-                  ThermometerHumidityPosition.bottomPill) {
-                resolvedHumidityWidget =
-                    _buildDefaultHumidityPill(humVal, isDark, scaleFactor);
-              } else if (widget.humidityPosition ==
-                  ThermometerHumidityPosition.sideDial) {
-                resolvedHumidityWidget = HygrometerWidget(
-                  humidity: humVal,
-                  size: (56.0 * scaleFactor).clamp(42.0, 80.0),
-                );
-              }
-            }
-
-            // Calculate precise pixel positions for top and humidity widgets based on configurable spacing
-            final tubeTopY = effectiveH * 0.09;
-            final bulbBottomY = effectiveH * 0.84 + (effectiveW * 0.14 * 1.25);
-
-            return SizedBox(
-              width: effectiveW,
-              height: effectiveH,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onVerticalDragStart: (details) {
-                  if (widget.interactive) {
-                    HapticFeedback.selectionClick();
-                    widget.onDragStart?.call();
-                    _handleInteraction(
-                        details.localPosition, Size(effectiveW, effectiveH));
-                  }
-                },
-                onVerticalDragUpdate: (details) {
-                  if (widget.interactive) {
-                    _handleInteraction(
-                        details.localPosition, Size(effectiveW, effectiveH));
-                  }
-                },
-                onVerticalDragEnd: (_) => widget.onDragEnd?.call(),
-                onTapDown: (details) {
-                  if (widget.interactive) {
-                    HapticFeedback.lightImpact();
-                    _handleInteraction(
-                        details.localPosition, Size(effectiveW, effectiveH));
-                  }
-                },
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    CustomPaint(
-                      size: Size(effectiveW, effectiveH),
-                      painter: _RealisticThermometerPainter(
-                        celsius: animatedCelsius,
-                        fahrenheit: currentFahrenheit,
-                        minCelsius: widget.minCelsius,
-                        maxCelsius: widget.maxCelsius,
-                        minFahrenheit: widget.minFahrenheit,
-                        maxFahrenheit: widget.maxFahrenheit,
-                        showFahrenheit: widget.showFahrenheit,
-                        showCelsius: widget.showCelsius,
-                        showMinorLabels: widget.showMinorLabels,
-                        celsiusMajorStep: widget.celsiusMajorStep,
-                        celsiusMediumStep: widget.celsiusMediumStep,
-                        celsiusMinorStep: widget.celsiusMinorStep,
-                        fahrenheitMajorStep: widget.fahrenheitMajorStep,
-                        fluidTheme: resolvedFluidTheme,
-                        readoutStyle: widget.readoutStyle,
-                        customFluidColor: widget.customFluidColor,
-                        colors: resolvedColors,
-                        celsiusUnitLabel: widget.celsiusUnitLabel,
-                        fahrenheitUnitLabel: widget.fahrenheitUnitLabel,
-                        valueFormatter: widget.valueFormatter,
-                        isDark: isDark,
-                        scaleFactor: scaleFactor,
-                        isDangerActive: _isDangerActive,
-                        dangerPulseFactor: _alertPulseAnimation.value,
-                      ),
-                    ),
-
-                    // Top Widget positioned outside top of stem with configurable spacing
-                    if (resolvedTopWidget != null)
-                      Positioned(
-                        top: (tubeTopY -
-                                widget.topWidgetSpacing -
-                                34 * scaleFactor)
-                            .clamp(-60.0, effectiveH),
-                        left: 0,
-                        right: 0,
-                        child: Align(
-                          alignment: Alignment(stemAlignmentX, 0),
-                          child: resolvedTopWidget,
-                        ),
-                      ),
-
-                    // Humidity Widget positioned outside bottom of bulb with configurable spacing
-                    if (resolvedHumidityWidget != null)
-                      widget.humidityPosition ==
-                              ThermometerHumidityPosition.sideDial
-                          ? Align(
-                              alignment: Alignment(
-                                  widget.showCelsius ? -0.85 : 0.85, 0.4),
-                              child: resolvedHumidityWidget,
-                            )
-                          : Positioned(
-                              top: bulbBottomY + widget.humiditySpacing,
-                              left: 0,
-                              right: 0,
-                              child: Align(
-                                alignment: Alignment(stemAlignmentX, 0),
-                                child: resolvedHumidityWidget,
-                              ),
-                            ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweepTotal,
+      false,
+      trackPaint,
     );
-  }
 
-  Widget _buildDefaultHumidityPill(
-      double humidity, bool isDark, double scaleFactor) {
-    final state = widget.humidityThresholds.getState(humidity);
-    final (stateColor, stateLabel) = switch (state) {
-      ThermometerHumidityState.dry => (
-          const Color(0xFFFF9800),
-          widget.dryLabel ?? 'جاف'
-        ),
-      ThermometerHumidityState.comfortable => (
-          const Color(0xFF00E676),
-          widget.comfortableLabel ?? 'مثالي'
-        ),
-      ThermometerHumidityState.humid => (
-          const Color(0xFF00B0FF),
-          widget.humidLabel ?? 'رطب'
-        ),
-    };
-
-    final bgColor = widget.colors?.humidityBackground ??
-        (isDark ? const Color(0xFF1E2430) : Colors.white);
-    final borderColor =
-        widget.colors?.humidityBorder ?? stateColor.withValues(alpha: 0.55);
-    final textColor = widget.colors?.humidityText ??
-        (isDark ? Colors.white : const Color(0xFF0F172A));
-    final iconColor = widget.colors?.humidityIcon ?? const Color(0xFF00B0FF);
-
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: (10.0 * scaleFactor).clamp(8.0, 16.0),
-        vertical: (5.0 * scaleFactor).clamp(4.0, 10.0),
-      ),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16 * scaleFactor),
-        border: Border.all(
-          color: borderColor,
-          width: 1.4 * scaleFactor,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
-            blurRadius: 8 * scaleFactor,
-            offset: Offset(0, 3 * scaleFactor),
-          ),
+    // Active Progress Arc
+    final activePaint = Paint()
+      ..shader = SweepGradient(
+        startAngle: startAngle,
+        endAngle: startAngle + sweepTotal,
+        colors: [
+          accentColor.withValues(alpha: 0.5),
+          accentColor,
         ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.water_drop_rounded,
-            color: iconColor,
-            size: (15.0 * scaleFactor).clamp(11.0, 22.0),
-          ),
-          SizedBox(width: 4 * scaleFactor),
-          Text(
-            '${humidity.toStringAsFixed(0)}${widget.humidityUnitLabel}',
-            style: TextStyle(
-              fontSize: (11.5 * scaleFactor).clamp(8.5, 16.0),
-              fontWeight: FontWeight.w800,
-              color: textColor,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-          if (stateLabel.isNotEmpty) ...[
-            SizedBox(width: 5 * scaleFactor),
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 5 * scaleFactor,
-                vertical: 1.5 * scaleFactor,
-              ),
-              decoration: BoxDecoration(
-                color: stateColor.withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(8 * scaleFactor),
-              ),
-              child: Text(
-                stateLabel,
-                style: TextStyle(
-                  fontSize: (9.0 * scaleFactor).clamp(7.0, 13.0),
-                  fontWeight: FontWeight.bold,
-                  color: stateColor,
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
+      ).createShader(Rect.fromCircle(center: center, radius: radius))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth + 0.8
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweepTotal * progress,
+      false,
+      activePaint,
     );
   }
 
-  Widget _buildDefaultTopBadge(bool isDark, double scaleFactor) {
-    final badgeColor = isDark ? const Color(0xFF282C35) : Colors.white;
-    final borderColor =
-        isDark ? const Color(0xFF4A5160) : const Color(0xFFD0D7DE);
-    final badgeSize = (36.0 * scaleFactor).clamp(20.0, 52.0);
-    final iconSize = (20.0 * scaleFactor).clamp(12.0, 30.0);
-
-    return Container(
-      width: badgeSize,
-      height: badgeSize,
-      decoration: BoxDecoration(
-        color: badgeColor,
-        shape: BoxShape.circle,
-        border: Border.all(color: borderColor, width: 1.5 * scaleFactor),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.15),
-            blurRadius: 8 * scaleFactor,
-            offset: Offset(0, 3 * scaleFactor),
-          ),
-          if (!isDark)
-            BoxShadow(
-              color: const Color(0x22FFFFFF),
-              blurRadius: 4 * scaleFactor,
-              offset: Offset(0, -1 * scaleFactor),
-            ),
-        ],
-      ),
-      child: Center(
-        child: Icon(
-          Icons.wb_sunny_rounded,
-          color: const Color(0xFFFFA000),
-          size: iconSize,
-        ),
-      ),
-    );
-  }
+  @override
+  bool shouldRepaint(covariant _HygrometerArcPainter old) =>
+      old.progress != progress ||
+      old.accentColor != accentColor ||
+      old.isDark != isDark;
 }
 
 /// Custom painter delivering 100% photorealistic glass & liquid physics.
@@ -990,6 +883,7 @@ class _RealisticThermometerPainter extends CustomPainter {
   final double scaleFactor;
   final bool isDangerActive;
   final double dangerPulseFactor;
+  final bool showAlertVisualPulse;
 
   _RealisticThermometerPainter({
     required this.celsius,
@@ -1016,6 +910,7 @@ class _RealisticThermometerPainter extends CustomPainter {
     this.scaleFactor = 1.0,
     this.isDangerActive = false,
     this.dangerPulseFactor = 0.0,
+    this.showAlertVisualPulse = true,
   });
 
   @override
@@ -1042,6 +937,16 @@ class _RealisticThermometerPainter extends CustomPainter {
     final tubeTop = h * 0.085;
     final tubeBottom = h * 0.835;
     final bulbCenterY = tubeBottom + bulbRadius * 0.48;
+
+    // 0. Pulsing red alert halo radiating from the bulb (drawn behind everything)
+    if (isDangerActive && showAlertVisualPulse) {
+      _drawBulbAlertHalo(
+        canvas,
+        cx,
+        bulbCenterY,
+        bulbRadius,
+      );
+    }
 
     // 1. Draw outer glass casing & backing plate
     _drawOuterGlassCasing(
@@ -1087,6 +992,16 @@ class _RealisticThermometerPainter extends CustomPainter {
       bulbCenterY,
     );
 
+    // 4b. Pulsing red alert animation on the bulb itself when in danger state
+    if (isDangerActive && showAlertVisualPulse) {
+      _drawBulbAlertPulse(
+        canvas,
+        cx,
+        bulbCenterY,
+        bulbRadius,
+      );
+    }
+
     // 5. Draw precision graduated ruler scale with micro-numbers
     _drawGraduatedScale(
       canvas,
@@ -1098,9 +1013,30 @@ class _RealisticThermometerPainter extends CustomPainter {
     );
   }
 
-  /// Draws the outer thick glass silhouette with drop shadows and beveling
-  void _drawOuterGlassCasing(
-    Canvas canvas,
+  @override
+  bool shouldRepaint(covariant _RealisticThermometerPainter old) =>
+      old.celsius != celsius ||
+      old.fahrenheit != fahrenheit ||
+      old.showMinorLabels != showMinorLabels ||
+      old.showCelsius != showCelsius ||
+      old.showFahrenheit != showFahrenheit ||
+      old.readoutStyle != readoutStyle ||
+      old.fluidTheme != fluidTheme ||
+      old.customFluidColor != customFluidColor ||
+      old.colors != colors ||
+      old.celsiusUnitLabel != celsiusUnitLabel ||
+      old.fahrenheitUnitLabel != fahrenheitUnitLabel ||
+      old.valueFormatter != valueFormatter ||
+      old.isDark != isDark ||
+      old.isDangerActive != isDangerActive ||
+      old.dangerPulseFactor != dangerPulseFactor ||
+      old.showAlertVisualPulse != showAlertVisualPulse ||
+      old.celsiusMajorStep != celsiusMajorStep ||
+      old.celsiusMediumStep != celsiusMediumStep ||
+      old.celsiusMinorStep != celsiusMinorStep;
+
+  /// Builds seamless unified path for tube + rounded top + bulb base
+  Path _buildThermometerPath(
     double cx,
     double top,
     double bottom,
@@ -1108,71 +1044,145 @@ class _RealisticThermometerPainter extends CustomPainter {
     double bulbR,
     double bulbCy,
   ) {
-    final outerPath = _buildThermometerPath(
-      cx,
-      top - tubeW * 0.45,
-      bottom,
-      tubeW + 10,
-      bulbR + 6,
-      bulbCy,
+    final halfTube = tubeW / 2;
+    final path = Path();
+
+    // Top dome
+    path.moveTo(cx - halfTube, top + halfTube);
+    path.arcToPoint(
+      Offset(cx + halfTube, top + halfTube),
+      radius: Radius.circular(halfTube),
+      clockwise: true,
     );
 
-    // Ambient drop shadow behind thermometer
-    canvas.drawShadow(
-      outerPath,
-      isDark ? const Color(0x99000000) : const Color(0x33000000),
-      10.0,
-      false,
+    // Right stem side down to bulb neck
+    final neckY = bottom - bulbR * 0.25;
+    path.lineTo(cx + halfTube, neckY);
+
+    // Transition curve to bulb
+    path.lineTo(cx + halfTube, neckY);
+
+    // Add bulb
+    final bulbPath = Path()
+      ..addOval(Rect.fromCircle(center: Offset(cx, bulbCy), radius: bulbR));
+
+    // Tube path combined with bulb
+    final stemPath = Path()
+      ..moveTo(cx - halfTube, top + halfTube)
+      ..arcToPoint(
+        Offset(cx + halfTube, top + halfTube),
+        radius: Radius.circular(halfTube),
+        clockwise: true,
+      )
+      ..lineTo(cx + halfTube, neckY + bulbR * 0.4)
+      ..lineTo(cx - halfTube, neckY + bulbR * 0.4)
+      ..close();
+
+    return Path.combine(PathOperation.union, stemPath, bulbPath);
+  }
+
+  /// Draws a soft pulsing red halo that radiates from the bulb area,
+  /// drawn behind the glass casing so the thermometer "lights up" when critical
+  void _drawBulbAlertHalo(
+    Canvas canvas,
+    double cx,
+    double bulbCy,
+    double bulbR,
+  ) {
+    final t = dangerPulseFactor.clamp(0.0, 1.0);
+    final pulse = 0.5 + 0.5 * t;
+
+    final glowRadius = bulbR * (1.45 + 0.55 * pulse);
+    final glowColor = colors?.alertGlow ?? const Color(0xFFFF3B30);
+
+    final haloPaint = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(0, 0),
+        radius: 1.0,
+        colors: [
+          glowColor.withValues(alpha: 0.38 * pulse),
+          glowColor.withValues(alpha: 0.14 * pulse),
+          glowColor.withValues(alpha: 0.0),
+        ],
+        stops: const [0.0, 0.62, 1.0],
+      ).createShader(Rect.fromCircle(
+        center: Offset(cx, bulbCy),
+        radius: glowRadius,
+      ));
+
+    canvas.drawCircle(
+      Offset(cx, bulbCy),
+      glowRadius,
+      haloPaint,
     );
 
-    // Outer frosted/translucent glass bezel
-    final bezelPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-        colors: isDark
-            ? [
-                const Color(0xFF383E4A),
-                const Color(0xFF282C34),
-                const Color(0xFF1E2229),
-                const Color(0xFF2C313B),
-              ]
-            : [
-                const Color(0xFFF7F9FC),
-                const Color(0xFFFFFFFF),
-                const Color(0xFFECEFF4),
-                const Color(0xFFE2E8F0),
-              ],
-        stops: const [0.0, 0.25, 0.75, 1.0],
-      ).createShader(Rect.fromLTWH(
-          cx - tubeW - 10, top - 30, (tubeW + 10) * 2, bottom - top + 80));
-
-    canvas.drawPath(outerPath, bezelPaint);
-
-    // Thin glass outline stroke
-    final outlinePaint = Paint()
+    // Outer ripple ring that expands outward and fades like a heartbeat
+    final rippleRadius = bulbR * (1.25 + 0.55 * t);
+    final ripplePaint = Paint()
+      ..color = glowColor.withValues(alpha: (1.0 - t) * 0.5)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: isDark
-            ? [
-                const Color(0x66FFFFFF),
-                const Color(0x22FFFFFF),
-                const Color(0x05FFFFFF),
-                const Color(0x44FFFFFF),
-              ]
-            : [
-                const Color(0xAAFFFFFF),
-                const Color(0x44000000),
-                const Color(0x11000000),
-                const Color(0x88FFFFFF),
-              ],
-      ).createShader(Rect.fromLTWH(
-          cx - tubeW - 10, top - 30, (tubeW + 10) * 2, bottom - top + 80));
+      ..strokeWidth = 1.6 * scaleFactor
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 2.0 * scaleFactor);
+    canvas.drawCircle(Offset(cx, bulbCy), rippleRadius, ripplePaint);
+  }
 
-    canvas.drawPath(outerPath, outlinePaint);
+  /// Draws the pulsing red alert effect on the bulb itself:
+  /// a glowing red rim on the glass edge plus a rising inner glow,
+  /// driven by the ping-ponging danger pulse animation
+  void _drawBulbAlertPulse(
+    Canvas canvas,
+    double cx,
+    double bulbCy,
+    double bulbR,
+  ) {
+    final t = dangerPulseFactor.clamp(0.0, 1.0);
+    final pulse = 0.5 + 0.5 * t;
+    final glowColor = colors?.alertGlow ?? const Color(0xFFFF3B30);
+
+    // 1. Inner red glow glowing through the bulb fluid (rises with the pulse)
+    final innerR = bulbR * (0.55 + 0.22 * pulse);
+    final innerPaint = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(0, 0),
+        radius: 1.0,
+        colors: [
+          glowColor.withValues(alpha: 0.55 * pulse),
+          glowColor.withValues(alpha: 0.16 * pulse),
+          glowColor.withValues(alpha: 0.0),
+        ],
+        stops: const [0.0, 0.55, 1.0],
+      ).createShader(Rect.fromCircle(
+        center: Offset(cx, bulbCy),
+        radius: innerR,
+      ));
+    canvas.drawCircle(Offset(cx, bulbCy), innerR, innerPaint);
+
+    // 2. Red rim lighting on the bulb glass edge
+    final rimPaint = Paint()
+      ..color = glowColor.withValues(alpha: 0.30 + 0.55 * pulse)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4 * scaleFactor
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 1.6 * scaleFactor);
+    canvas.drawCircle(Offset(cx, bulbCy), bulbR * 0.99, rimPaint);
+
+    // 3. Small bright red glow dot at the bulb center (breathing)
+    final centerR = bulbR * (0.30 + 0.08 * pulse);
+    final centerPaint = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(0, 0),
+        radius: 1.0,
+        colors: [
+          glowColor.withValues(alpha: 0.85 * pulse),
+          glowColor.withValues(alpha: 0.25 * pulse),
+          glowColor.withValues(alpha: 0.0),
+        ],
+        stops: const [0.0, 0.6, 1.0],
+      ).createShader(Rect.fromCircle(
+        center: Offset(cx, bulbCy),
+        radius: centerR,
+      ));
+    canvas.drawCircle(Offset(cx, bulbCy), centerR, centerPaint);
   }
 
   /// Draws the inner hollow capillary channel (the vacuum channel)
@@ -1223,111 +1233,232 @@ class _RealisticThermometerPainter extends CustomPainter {
     canvas.drawPath(borePath, innerShadowPaint);
   }
 
-  /// Draws the 100% photorealistic liquid with cylindrical 3D shader, bulb volume, and meniscus
-  void _drawRealisticFluid(
+  /// Renders the 3-tick cylindrical rolling wheel readout:
+  /// - Top tick: faded 60% (opacity 0.40)
+  /// - Middle tick: 100% clarity with glowing active temperature value
+  /// - Bottom tick: faded 60% (opacity 0.40)
+  void _drawCircularWheelReadout(
     Canvas canvas,
-    double cx,
-    double top,
-    double bottom,
-    double innerW,
-    double fluidBulbR,
-    double bulbCy,
-  ) {
-    final primary = customFluidColor ?? fluidTheme.primary;
-    final deep = fluidTheme.deep;
-    final highlight = fluidTheme.highlight;
+    double rightTickX,
+    double curY,
+    Color primaryColor, {
+    bool isIntegrated = false,
+  }) {
+    final tp = TextPainter(textDirection: TextDirection.ltr);
 
-    // Linear mapping for fluid column height based on Celsius
-    final t =
-        ((celsius - minCelsius) / (maxCelsius - minCelsius)).clamp(0.0, 1.0);
-    final fillTopY = bottom - (bottom - top) * t;
-
-    final fluidClipPath = _buildThermometerPath(
-      cx,
-      top,
-      bottom,
-      innerW,
-      fluidBulbR,
-      bulbCy,
+    // Geometry of the 3D wheel drum capsule
+    final wheelLeft = isIntegrated
+        ? rightTickX + 4.0 * scaleFactor
+        : rightTickX + (showMinorLabels ? 38.0 : 28.0) * scaleFactor;
+    final wheelWidth = (86.0 * scaleFactor).clamp(66.0, 115.0);
+    final wheelHeight = (54.0 * scaleFactor).clamp(40.0, 72.0);
+    final wheelCenter = Offset(wheelLeft + wheelWidth / 2, curY);
+    final wheelRect = Rect.fromCenter(
+      center: wheelCenter,
+      width: wheelWidth,
+      height: wheelHeight,
     );
 
-    canvas.save();
-    canvas.clipPath(fluidClipPath);
-
-    // Fluid column rectangle
-    final fluidRect = Rect.fromLTRB(
-      cx - innerW * 1.2,
-      fillTopY,
-      cx + innerW * 1.2,
-      bottom + fluidBulbR * 2,
-    );
-
-    // 3D cylindrical liquid shader (dark sides, bright center streak)
-    final fluidShader = LinearGradient(
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-      colors: [
-        deep,
-        primary,
-        highlight,
-        primary,
-        deep,
-      ],
-      stops: const [0.0, 0.25, 0.5, 0.78, 1.0],
-    ).createShader(fluidRect);
-
-    final fluidPaint = Paint()..shader = fluidShader;
-    canvas.drawRect(fluidRect, fluidPaint);
-
-    // Liquid Meniscus (realistic curved dome at top of column)
-    if (t > 0.01) {
-      final meniscusHeight = innerW * 0.45;
-      final meniscusRect = Rect.fromCenter(
-        center: Offset(cx, fillTopY),
-        width: innerW,
-        height: meniscusHeight,
+    // 1. Connector pointer line from thermometer meniscus to the wheel center
+    if (!isIntegrated) {
+      final connectorPaint = Paint()
+        ..color = primaryColor.withValues(alpha: 0.6)
+        ..strokeWidth = 1.2 * scaleFactor
+        ..style = PaintingStyle.stroke;
+      canvas.drawLine(
+        Offset(rightTickX + 6 * scaleFactor, curY),
+        Offset(wheelLeft, curY),
+        connectorPaint,
       );
-
-      // Meniscus specular arc highlight
-      final meniscusHighlightPaint = Paint()
-        ..shader = RadialGradient(
-          center: const Alignment(0, -0.4),
-          radius: 0.7,
-          colors: [
-            Colors.white.withValues(alpha: 0.95),
-            highlight.withValues(alpha: 0.8),
-            primary.withValues(alpha: 0.0),
-          ],
-        ).createShader(meniscusRect);
-
-      canvas.drawOval(meniscusRect, meniscusHighlightPaint);
     }
 
-    canvas.restore();
+    // 2. Ambient drop shadow behind the 3D wheel
+    final wheelRRect = RRect.fromRectAndRadius(
+      wheelRect,
+      Radius.circular(14.0 * scaleFactor),
+    );
+    canvas.drawShadow(
+      Path()..addRRect(wheelRRect),
+      isDark ? const Color(0xAA000000) : const Color(0x28000000),
+      6.0 * scaleFactor,
+      false,
+    );
 
-    // 3D Spherical Liquid Bulb with realistic radial depth and specular glow
-    final bulbRect =
-        Rect.fromCircle(center: Offset(cx, bulbCy), radius: fluidBulbR);
-    final bulbShader = RadialGradient(
-      center: const Alignment(-0.35, -0.35),
-      radius: 0.85,
-      colors: [
-        highlight,
-        primary,
-        deep,
-        Color.lerp(deep, Colors.black, 0.4)!,
-      ],
-      stops: const [0.0, 0.35, 0.75, 1.0],
-    ).createShader(bulbRect);
+    // 3. 3D Cylindrical Drum Shading (dark top/bottom, bright center reflection)
+    final drumShader = LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: isDark
+          ? [
+              const Color(0xFF13161C),
+              const Color(0xFF222834),
+              const Color(0xFF2C3444),
+              const Color(0xFF222834),
+              const Color(0xFF13161C),
+            ]
+          : [
+              const Color(0xFFE2E8F0),
+              const Color(0xFFF8FAFC),
+              const Color(0xFFFFFFFF),
+              const Color(0xFFF8FAFC),
+              const Color(0xFFE2E8F0),
+            ],
+      stops: const [0.0, 0.22, 0.5, 0.78, 1.0],
+    ).createShader(wheelRect);
 
-    final bulbPaint = Paint()..shader = bulbShader;
-    canvas.drawCircle(Offset(cx, bulbCy), fluidBulbR, bulbPaint);
+    final drumPaint = Paint()..shader = drumShader;
+    canvas.drawRRect(wheelRRect, drumPaint);
 
-    // Fluid ambient glow bloom outside bulb
-    final glowPaint = Paint()
-      ..color = (colors?.fluidGlow ?? fluidTheme.glow)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 12.0 * scaleFactor);
-    canvas.drawCircle(Offset(cx, bulbCy), fluidBulbR * 0.95, glowPaint);
+    // 4. Subtle lens border with specular rim
+    final borderPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2 * scaleFactor
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: isDark
+            ? [
+                Colors.white.withValues(alpha: 0.2),
+                primaryColor.withValues(alpha: 0.4),
+                Colors.white.withValues(alpha: 0.1),
+              ]
+            : [
+                Colors.white.withValues(alpha: 0.8),
+                primaryColor.withValues(alpha: 0.3),
+                const Color(0xFFCBD5E1),
+              ],
+      ).createShader(wheelRect);
+    canvas.drawRRect(wheelRRect, borderPaint);
+
+    // ─── THE 3 TICKS (الـ 3 شرطات) ───
+    final tickStartX = wheelLeft + (7.0 * scaleFactor);
+    final tickSpacing = 15.0 * scaleFactor;
+
+    // A) Top Tick: Faded 60% (Opacity 0.40)
+    final topTickY = curY - tickSpacing;
+    final topTickPaint = Paint()
+      ..color = (isDark ? Colors.white : const Color(0xFF475569))
+          .withValues(alpha: 0.40) // 60% hidden/faded
+      ..strokeWidth = 1.3 * scaleFactor
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(tickStartX, topTickY),
+      Offset(tickStartX + 7.0 * scaleFactor, topTickY),
+      topTickPaint,
+    );
+
+    // Top Tick Micro Value (e.g. +1° with 0.40 opacity)
+    tp.text = TextSpan(
+      text: '${(celsius + 1).toStringAsFixed(0)}°',
+      style: TextStyle(
+        color: (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))
+            .withValues(alpha: 0.40),
+        fontSize: (9.0 * scaleFactor).clamp(7.0, 13.0),
+        fontWeight: FontWeight.w500,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      ),
+    );
+    tp.layout();
+    tp.paint(canvas,
+        Offset(tickStartX + 12.0 * scaleFactor, topTickY - tp.height / 2));
+
+    // B) Middle Active Tick: 100% Opaque & Vibrant with live value in front of it
+    final centerTickPaint = Paint()
+      ..color = primaryColor
+      ..strokeWidth = 2.4 * scaleFactor
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(tickStartX, curY),
+      Offset(tickStartX + 12.0 * scaleFactor, curY),
+      centerTickPaint,
+    );
+
+    // Middle Bold Temperature Value (uses custom valueFormatter if provided)
+    final activeText = valueFormatter != null
+        ? valueFormatter!(celsius)
+        : '${celsius.toStringAsFixed(1)}°';
+
+    tp.text = TextSpan(
+      text: activeText,
+      style: TextStyle(
+        color: isDark ? Colors.white : const Color(0xFF0F172A),
+        fontSize: (13.5 * scaleFactor).clamp(9.5, 18.0),
+        fontWeight: FontWeight.w800,
+        letterSpacing: 0.3,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      ),
+    );
+    tp.layout();
+    tp.paint(
+        canvas, Offset(tickStartX + 16.0 * scaleFactor, curY - tp.height / 2));
+
+    // C) Bottom Tick: Faded 60% (Opacity 0.40)
+    final bottomTickY = curY + tickSpacing;
+    final bottomTickPaint = Paint()
+      ..color = (isDark ? Colors.white : const Color(0xFF475569))
+          .withValues(alpha: 0.40) // 60% hidden/faded
+      ..strokeWidth = 1.3 * scaleFactor
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(tickStartX, bottomTickY),
+      Offset(tickStartX + 7.0 * scaleFactor, bottomTickY),
+      bottomTickPaint,
+    );
+
+    // Bottom Tick Micro Value (e.g. -1° with 0.40 opacity)
+    tp.text = TextSpan(
+      text: '${(celsius - 1).toStringAsFixed(0)}°',
+      style: TextStyle(
+        color: (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))
+            .withValues(alpha: 0.40),
+        fontSize: (9.0 * scaleFactor).clamp(7.0, 13.0),
+        fontWeight: FontWeight.w500,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      ),
+    );
+    tp.layout();
+    tp.paint(canvas,
+        Offset(tickStartX + 12.0 * scaleFactor, bottomTickY - tp.height / 2));
+  }
+
+  /// Draws the current level indicator: either glowing 3-tick circular wheel or marker
+  void _drawCurrentLevelMarker(
+    Canvas canvas,
+    double cx,
+    double tubeW,
+    double top,
+    double bottom,
+    double scaleSpan,
+  ) {
+    final t =
+        ((celsius - minCelsius) / (maxCelsius - minCelsius)).clamp(0.0, 1.0);
+    final curY = bottom - t * scaleSpan;
+    final primary = customFluidColor ?? fluidTheme.primary;
+
+    final markerPaint = Paint()
+      ..color = primary
+      ..strokeWidth = 2.0 * scaleFactor
+      ..strokeCap = StrokeCap.round;
+
+    // Subtle level pips on scale origins
+    final rightX = cx + tubeW / 2 + (8 * scaleFactor);
+    canvas.drawLine(Offset(rightX, curY),
+        Offset(rightX + 6 * scaleFactor, curY), markerPaint);
+
+    final leftX = cx - tubeW / 2 - (8 * scaleFactor);
+    canvas.drawLine(Offset(leftX, curY), Offset(leftX - 6 * scaleFactor, curY),
+        markerPaint);
+
+    // ─── 3-Tick Circular Wheel Readout (البكرة الدائرية ذات الـ 3 شرطات) ───
+    if (readoutStyle == ThermometerReadoutStyle.circularWheel) {
+      _drawCircularWheelReadout(canvas, rightX, curY, primary,
+          isIntegrated: false);
+    } else if (readoutStyle == ThermometerReadoutStyle.integratedScaleWheel) {
+      _drawCircularWheelReadout(canvas, rightX, curY, primary,
+          isIntegrated: true);
+    } else if (readoutStyle == ThermometerReadoutStyle.simpleBadge) {
+      _drawSimpleBadgeReadout(canvas, rightX, curY, primary);
+    }
   }
 
   /// Draws glass specular streaks, longitudinal glints, and surface reflections
@@ -1435,52 +1566,6 @@ class _RealisticThermometerPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..color = Colors.white.withValues(alpha: 0.25);
     canvas.drawPath(bounceGlintPath, bounceGlintPaint);
-  }
-
-  /// Builds seamless unified path for tube + rounded top + bulb base
-  Path _buildThermometerPath(
-    double cx,
-    double top,
-    double bottom,
-    double tubeW,
-    double bulbR,
-    double bulbCy,
-  ) {
-    final halfTube = tubeW / 2;
-    final path = Path();
-
-    // Top dome
-    path.moveTo(cx - halfTube, top + halfTube);
-    path.arcToPoint(
-      Offset(cx + halfTube, top + halfTube),
-      radius: Radius.circular(halfTube),
-      clockwise: true,
-    );
-
-    // Right stem side down to bulb neck
-    final neckY = bottom - bulbR * 0.25;
-    path.lineTo(cx + halfTube, neckY);
-
-    // Transition curve to bulb
-    path.lineTo(cx + halfTube, neckY);
-
-    // Add bulb
-    final bulbPath = Path()
-      ..addOval(Rect.fromCircle(center: Offset(cx, bulbCy), radius: bulbR));
-
-    // Tube path combined with bulb
-    final stemPath = Path()
-      ..moveTo(cx - halfTube, top + halfTube)
-      ..arcToPoint(
-        Offset(cx + halfTube, top + halfTube),
-        radius: Radius.circular(halfTube),
-        clockwise: true,
-      )
-      ..lineTo(cx + halfTube, neckY + bulbR * 0.4)
-      ..lineTo(cx - halfTube, neckY + bulbR * 0.4)
-      ..close();
-
-    return Path.combine(PathOperation.union, stemPath, bulbPath);
   }
 
   /// Draws the precision graduated ruler scale with major ticks (5, 10, 15...) and minor tick micro-labels
@@ -1683,232 +1768,188 @@ class _RealisticThermometerPainter extends CustomPainter {
     _drawCurrentLevelMarker(canvas, cx, tubeW, top, bottom, scaleSpan);
   }
 
-  /// Draws the current level indicator: either glowing 3-tick circular wheel or marker
-  void _drawCurrentLevelMarker(
+  /// Draws the outer thick glass silhouette with drop shadows and beveling
+  void _drawOuterGlassCasing(
     Canvas canvas,
     double cx,
-    double tubeW,
     double top,
     double bottom,
-    double scaleSpan,
+    double tubeW,
+    double bulbR,
+    double bulbCy,
   ) {
-    final t =
-        ((celsius - minCelsius) / (maxCelsius - minCelsius)).clamp(0.0, 1.0);
-    final curY = bottom - t * scaleSpan;
-    final primary = customFluidColor ?? fluidTheme.primary;
-
-    final markerPaint = Paint()
-      ..color = primary
-      ..strokeWidth = 2.0 * scaleFactor
-      ..strokeCap = StrokeCap.round;
-
-    // Subtle level pips on scale origins
-    final rightX = cx + tubeW / 2 + (8 * scaleFactor);
-    canvas.drawLine(Offset(rightX, curY),
-        Offset(rightX + 6 * scaleFactor, curY), markerPaint);
-
-    final leftX = cx - tubeW / 2 - (8 * scaleFactor);
-    canvas.drawLine(Offset(leftX, curY), Offset(leftX - 6 * scaleFactor, curY),
-        markerPaint);
-
-    // ─── 3-Tick Circular Wheel Readout (البكرة الدائرية ذات الـ 3 شرطات) ───
-    if (readoutStyle == ThermometerReadoutStyle.circularWheel) {
-      _drawCircularWheelReadout(canvas, rightX, curY, primary,
-          isIntegrated: false);
-    } else if (readoutStyle == ThermometerReadoutStyle.integratedScaleWheel) {
-      _drawCircularWheelReadout(canvas, rightX, curY, primary,
-          isIntegrated: true);
-    } else if (readoutStyle == ThermometerReadoutStyle.simpleBadge) {
-      _drawSimpleBadgeReadout(canvas, rightX, curY, primary);
-    }
-  }
-
-  /// Renders the 3-tick cylindrical rolling wheel readout:
-  /// - Top tick: faded 60% (opacity 0.40)
-  /// - Middle tick: 100% clarity with glowing active temperature value
-  /// - Bottom tick: faded 60% (opacity 0.40)
-  void _drawCircularWheelReadout(
-    Canvas canvas,
-    double rightTickX,
-    double curY,
-    Color primaryColor, {
-    bool isIntegrated = false,
-  }) {
-    final tp = TextPainter(textDirection: TextDirection.ltr);
-
-    // Geometry of the 3D wheel drum capsule
-    final wheelLeft = isIntegrated
-        ? rightTickX + 4.0 * scaleFactor
-        : rightTickX + (showMinorLabels ? 38.0 : 28.0) * scaleFactor;
-    final wheelWidth = (86.0 * scaleFactor).clamp(66.0, 115.0);
-    final wheelHeight = (54.0 * scaleFactor).clamp(40.0, 72.0);
-    final wheelCenter = Offset(wheelLeft + wheelWidth / 2, curY);
-    final wheelRect = Rect.fromCenter(
-      center: wheelCenter,
-      width: wheelWidth,
-      height: wheelHeight,
+    final outerPath = _buildThermometerPath(
+      cx,
+      top - tubeW * 0.45,
+      bottom,
+      tubeW + 10,
+      bulbR + 6,
+      bulbCy,
     );
 
-    // 1. Connector pointer line from thermometer meniscus to the wheel center
-    if (!isIntegrated) {
-      final connectorPaint = Paint()
-        ..color = primaryColor.withValues(alpha: 0.6)
-        ..strokeWidth = 1.2 * scaleFactor
-        ..style = PaintingStyle.stroke;
-      canvas.drawLine(
-        Offset(rightTickX + 6 * scaleFactor, curY),
-        Offset(wheelLeft, curY),
-        connectorPaint,
-      );
-    }
-
-    // 2. Ambient drop shadow behind the 3D wheel
-    final wheelRRect = RRect.fromRectAndRadius(
-      wheelRect,
-      Radius.circular(14.0 * scaleFactor),
-    );
+    // Ambient drop shadow behind thermometer
     canvas.drawShadow(
-      Path()..addRRect(wheelRRect),
-      isDark ? const Color(0xAA000000) : const Color(0x28000000),
-      6.0 * scaleFactor,
+      outerPath,
+      isDark ? const Color(0x99000000) : const Color(0x33000000),
+      10.0,
       false,
     );
 
-    // 3. 3D Cylindrical Drum Shading (dark top/bottom, bright center reflection)
-    final drumShader = LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: isDark
-          ? [
-              const Color(0xFF13161C),
-              const Color(0xFF222834),
-              const Color(0xFF2C3444),
-              const Color(0xFF222834),
-              const Color(0xFF13161C),
-            ]
-          : [
-              const Color(0xFFE2E8F0),
-              const Color(0xFFF8FAFC),
-              const Color(0xFFFFFFFF),
-              const Color(0xFFF8FAFC),
-              const Color(0xFFE2E8F0),
-            ],
-      stops: const [0.0, 0.22, 0.5, 0.78, 1.0],
-    ).createShader(wheelRect);
-
-    final drumPaint = Paint()..shader = drumShader;
-    canvas.drawRRect(wheelRRect, drumPaint);
-
-    // 4. Subtle lens border with specular rim
-    final borderPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2 * scaleFactor
+    // Outer frosted/translucent glass bezel
+    final bezelPaint = Paint()
       ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
         colors: isDark
             ? [
-                Colors.white.withValues(alpha: 0.2),
-                primaryColor.withValues(alpha: 0.4),
-                Colors.white.withValues(alpha: 0.1),
+                const Color(0xFF383E4A),
+                const Color(0xFF282C34),
+                const Color(0xFF1E2229),
+                const Color(0xFF2C313B),
               ]
             : [
-                Colors.white.withValues(alpha: 0.8),
-                primaryColor.withValues(alpha: 0.3),
-                const Color(0xFFCBD5E1),
+                const Color(0xFFF7F9FC),
+                const Color(0xFFFFFFFF),
+                const Color(0xFFECEFF4),
+                const Color(0xFFE2E8F0),
               ],
-      ).createShader(wheelRect);
-    canvas.drawRRect(wheelRRect, borderPaint);
+        stops: const [0.0, 0.25, 0.75, 1.0],
+      ).createShader(Rect.fromLTWH(
+          cx - tubeW - 10, top - 30, (tubeW + 10) * 2, bottom - top + 80));
 
-    // ─── THE 3 TICKS (الـ 3 شرطات) ───
-    final tickStartX = wheelLeft + (7.0 * scaleFactor);
-    final tickSpacing = 15.0 * scaleFactor;
+    canvas.drawPath(outerPath, bezelPaint);
 
-    // A) Top Tick: Faded 60% (Opacity 0.40)
-    final topTickY = curY - tickSpacing;
-    final topTickPaint = Paint()
-      ..color = (isDark ? Colors.white : const Color(0xFF475569))
-          .withValues(alpha: 0.40) // 60% hidden/faded
-      ..strokeWidth = 1.3 * scaleFactor
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(
-      Offset(tickStartX, topTickY),
-      Offset(tickStartX + 7.0 * scaleFactor, topTickY),
-      topTickPaint,
+    // Thin glass outline stroke
+    final outlinePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: isDark
+            ? [
+                const Color(0x66FFFFFF),
+                const Color(0x22FFFFFF),
+                const Color(0x05FFFFFF),
+                const Color(0x44FFFFFF),
+              ]
+            : [
+                const Color(0xAAFFFFFF),
+                const Color(0x44000000),
+                const Color(0x11000000),
+                const Color(0x88FFFFFF),
+              ],
+      ).createShader(Rect.fromLTWH(
+          cx - tubeW - 10, top - 30, (tubeW + 10) * 2, bottom - top + 80));
+
+    canvas.drawPath(outerPath, outlinePaint);
+  }
+
+  /// Draws the 100% photorealistic liquid with cylindrical 3D shader, bulb volume, and meniscus
+  void _drawRealisticFluid(
+    Canvas canvas,
+    double cx,
+    double top,
+    double bottom,
+    double innerW,
+    double fluidBulbR,
+    double bulbCy,
+  ) {
+    final primary = customFluidColor ?? fluidTheme.primary;
+    final deep = fluidTheme.deep;
+    final highlight = fluidTheme.highlight;
+
+    // Linear mapping for fluid column height based on Celsius
+    final t =
+        ((celsius - minCelsius) / (maxCelsius - minCelsius)).clamp(0.0, 1.0);
+    final fillTopY = bottom - (bottom - top) * t;
+
+    final fluidClipPath = _buildThermometerPath(
+      cx,
+      top,
+      bottom,
+      innerW,
+      fluidBulbR,
+      bulbCy,
     );
 
-    // Top Tick Micro Value (e.g. +1° with 0.40 opacity)
-    tp.text = TextSpan(
-      text: '${(celsius + 1).toStringAsFixed(0)}°',
-      style: TextStyle(
-        color: (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))
-            .withValues(alpha: 0.40),
-        fontSize: (9.0 * scaleFactor).clamp(7.0, 13.0),
-        fontWeight: FontWeight.w500,
-        fontFeatures: const [FontFeature.tabularFigures()],
-      ),
-    );
-    tp.layout();
-    tp.paint(canvas,
-        Offset(tickStartX + 12.0 * scaleFactor, topTickY - tp.height / 2));
+    canvas.save();
+    canvas.clipPath(fluidClipPath);
 
-    // B) Middle Active Tick: 100% Opaque & Vibrant with live value in front of it
-    final centerTickPaint = Paint()
-      ..color = primaryColor
-      ..strokeWidth = 2.4 * scaleFactor
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(
-      Offset(tickStartX, curY),
-      Offset(tickStartX + 12.0 * scaleFactor, curY),
-      centerTickPaint,
+    // Fluid column rectangle
+    final fluidRect = Rect.fromLTRB(
+      cx - innerW * 1.2,
+      fillTopY,
+      cx + innerW * 1.2,
+      bottom + fluidBulbR * 2,
     );
 
-    // Middle Bold Temperature Value (uses custom valueFormatter if provided)
-    final activeText = valueFormatter != null
-        ? valueFormatter!(celsius)
-        : '${celsius.toStringAsFixed(1)}°';
+    // 3D cylindrical liquid shader (dark sides, bright center streak)
+    final fluidShader = LinearGradient(
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+      colors: [
+        deep,
+        primary,
+        highlight,
+        primary,
+        deep,
+      ],
+      stops: const [0.0, 0.25, 0.5, 0.78, 1.0],
+    ).createShader(fluidRect);
 
-    tp.text = TextSpan(
-      text: activeText,
-      style: TextStyle(
-        color: isDark ? Colors.white : const Color(0xFF0F172A),
-        fontSize: (13.5 * scaleFactor).clamp(9.5, 18.0),
-        fontWeight: FontWeight.w800,
-        letterSpacing: 0.3,
-        fontFeatures: const [FontFeature.tabularFigures()],
-      ),
-    );
-    tp.layout();
-    tp.paint(
-        canvas, Offset(tickStartX + 16.0 * scaleFactor, curY - tp.height / 2));
+    final fluidPaint = Paint()..shader = fluidShader;
+    canvas.drawRect(fluidRect, fluidPaint);
 
-    // C) Bottom Tick: Faded 60% (Opacity 0.40)
-    final bottomTickY = curY + tickSpacing;
-    final bottomTickPaint = Paint()
-      ..color = (isDark ? Colors.white : const Color(0xFF475569))
-          .withValues(alpha: 0.40) // 60% hidden/faded
-      ..strokeWidth = 1.3 * scaleFactor
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(
-      Offset(tickStartX, bottomTickY),
-      Offset(tickStartX + 7.0 * scaleFactor, bottomTickY),
-      bottomTickPaint,
-    );
+    // Liquid Meniscus (realistic curved dome at top of column)
+    if (t > 0.01) {
+      final meniscusHeight = innerW * 0.45;
+      final meniscusRect = Rect.fromCenter(
+        center: Offset(cx, fillTopY),
+        width: innerW,
+        height: meniscusHeight,
+      );
 
-    // Bottom Tick Micro Value (e.g. -1° with 0.40 opacity)
-    tp.text = TextSpan(
-      text: '${(celsius - 1).toStringAsFixed(0)}°',
-      style: TextStyle(
-        color: (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))
-            .withValues(alpha: 0.40),
-        fontSize: (9.0 * scaleFactor).clamp(7.0, 13.0),
-        fontWeight: FontWeight.w500,
-        fontFeatures: const [FontFeature.tabularFigures()],
-      ),
-    );
-    tp.layout();
-    tp.paint(canvas,
-        Offset(tickStartX + 12.0 * scaleFactor, bottomTickY - tp.height / 2));
+      // Meniscus specular arc highlight
+      final meniscusHighlightPaint = Paint()
+        ..shader = RadialGradient(
+          center: const Alignment(0, -0.4),
+          radius: 0.7,
+          colors: [
+            Colors.white.withValues(alpha: 0.95),
+            highlight.withValues(alpha: 0.8),
+            primary.withValues(alpha: 0.0),
+          ],
+        ).createShader(meniscusRect);
+
+      canvas.drawOval(meniscusRect, meniscusHighlightPaint);
+    }
+
+    canvas.restore();
+
+    // 3D Spherical Liquid Bulb with realistic radial depth and specular glow
+    final bulbRect =
+        Rect.fromCircle(center: Offset(cx, bulbCy), radius: fluidBulbR);
+    final bulbShader = RadialGradient(
+      center: const Alignment(-0.35, -0.35),
+      radius: 0.85,
+      colors: [
+        highlight,
+        primary,
+        deep,
+        Color.lerp(deep, Colors.black, 0.4)!,
+      ],
+      stops: const [0.0, 0.35, 0.75, 1.0],
+    ).createShader(bulbRect);
+
+    final bulbPaint = Paint()..shader = bulbShader;
+    canvas.drawCircle(Offset(cx, bulbCy), fluidBulbR, bulbPaint);
+
+    // Fluid ambient glow bloom outside bulb
+    final glowPaint = Paint()
+      ..color = (colors?.fluidGlow ?? fluidTheme.glow)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 12.0 * scaleFactor);
+    canvas.drawCircle(Offset(cx, bulbCy), fluidBulbR * 0.95, glowPaint);
   }
 
   /// Simple badge readout alternative
@@ -1989,408 +2030,499 @@ class _RealisticThermometerPainter extends CustomPainter {
 
     tp.paint(canvas, Offset(x, y));
   }
-
-  @override
-  bool shouldRepaint(covariant _RealisticThermometerPainter old) =>
-      old.celsius != celsius ||
-      old.fahrenheit != fahrenheit ||
-      old.showMinorLabels != showMinorLabels ||
-      old.showCelsius != showCelsius ||
-      old.showFahrenheit != showFahrenheit ||
-      old.readoutStyle != readoutStyle ||
-      old.fluidTheme != fluidTheme ||
-      old.customFluidColor != customFluidColor ||
-      old.colors != colors ||
-      old.celsiusUnitLabel != celsiusUnitLabel ||
-      old.fahrenheitUnitLabel != fahrenheitUnitLabel ||
-      old.valueFormatter != valueFormatter ||
-      old.isDark != isDark ||
-      old.isDangerActive != isDangerActive ||
-      old.dangerPulseFactor != dangerPulseFactor ||
-      old.celsiusMajorStep != celsiusMajorStep ||
-      old.celsiusMediumStep != celsiusMediumStep ||
-      old.celsiusMinorStep != celsiusMinorStep;
 }
 
-/// Standalone 3-tick 3D Cylindrical Rolling Wheel Readout Widget
-/// Can be used anywhere in cards, dashboards, or next to sliders.
-class ThermometerWheelReadout extends StatelessWidget {
-  final double celsius;
-  final String? unit;
-  final Color? activeColor;
-  final double width;
-  final double height;
+class _ThermometerWidgetState extends State<ThermometerWidget>
+    with TickerProviderStateMixin {
+  late AnimationController _animController;
+  late Animation<double> _animValue;
 
-  const ThermometerWheelReadout({
-    super.key,
-    required this.celsius,
-    this.unit = '°C',
-    this.activeColor,
-    this.width = 104,
-    this.height = 68,
-  });
+  late AnimationController _alertPulseController;
+  late Animation<double> _alertPulseAnimation;
+
+  double _currentCelsius = 32.0;
+  bool _isDangerActive = false;
+  DateTime? _lastAlertTime;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primary = activeColor ?? Theme.of(context).colorScheme.primary;
 
-    return Container(
-      width: width,
-      height: height,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: isDark
-              ? [
-                  const Color(0xFF13161C),
-                  const Color(0xFF222834),
-                  const Color(0xFF2C3444),
-                  const Color(0xFF222834),
-                  const Color(0xFF13161C),
-                ]
-              : [
-                  const Color(0xFFE2E8F0),
-                  const Color(0xFFF8FAFC),
-                  const Color(0xFFFFFFFF),
-                  const Color(0xFFF8FAFC),
-                  const Color(0xFFE2E8F0),
-                ],
-          stops: const [0.0, 0.22, 0.5, 0.78, 1.0],
-        ),
-        border: Border.all(
-          color: primary.withValues(alpha: 0.35),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          // ─── Top Faded Tick (60% faded) ───
-          Expanded(
-            flex: 2,
-            child: Opacity(
-              opacity: 0.40, // 60% faded
-              child: Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 1.5,
-                    color: isDark ? Colors.white70 : Colors.black54,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        '${(celsius + 1).toStringAsFixed(0)}°',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.white70 : Colors.black54,
-                          height: 1.1,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final effectiveW = widget.width ??
+            (constraints.hasBoundedWidth && constraints.maxWidth.isFinite
+                ? constraints.maxWidth
+                : 230.0);
+        final effectiveH = widget.height ??
+            (constraints.hasBoundedHeight && constraints.maxHeight.isFinite
+                ? constraints.maxHeight
+                : 440.0);
+
+        final scaleFactor =
+            (math.min(effectiveW / 220, effectiveH / 420)).clamp(0.45, 2.5);
+
+        // Smart horizontal alignment if only one scale is displayed
+        final double stemAlignmentX;
+        if (widget.showCelsius && !widget.showFahrenheit) {
+          stemAlignmentX = -0.3; // stem slightly left, Celsius scale on right
+        } else if (!widget.showCelsius && widget.showFahrenheit) {
+          stemAlignmentX = 0.3; // stem slightly right, Fahrenheit scale on left
+        } else {
+          stemAlignmentX = 0.0; // centered
+        }
+
+        return AnimatedBuilder(
+          animation: Listenable.merge([_animController, _alertPulseController]),
+          builder: (context, child) {
+            final animatedCelsius = _animController.isAnimating
+                ? _animValue.value
+                : _currentCelsius;
+            final currentFahrenheit = animatedCelsius * 9 / 5 + 32;
+            final tempState = widget.thresholds.getState(animatedCelsius);
+
+            // Dynamic fluid theme & colors resolution based on current live value
+            final ThermometerFluidTheme resolvedFluidTheme;
+            if (widget.fluidThemeBuilder != null) {
+              resolvedFluidTheme =
+                  widget.fluidThemeBuilder!(animatedCelsius, tempState);
+            } else if (widget.autoTheme) {
+              resolvedFluidTheme = ThermometerFluidTheme.fromCelsius(
+                  animatedCelsius, widget.thresholds);
+            } else {
+              resolvedFluidTheme = widget.fluidTheme;
+            }
+
+            final ThermometerColors? resolvedColors;
+            if (widget.colorsBuilder != null) {
+              resolvedColors =
+                  widget.colorsBuilder!(animatedCelsius, tempState);
+            } else {
+              resolvedColors = widget.colors;
+            }
+
+            // Custom Top Widget Slot (SVG, Lottie, or custom dynamic widget outside top of thermometer)
+            Widget? resolvedTopWidget;
+            if (widget.showSunIcon) {
+              if (widget.topWidgetBuilder != null) {
+                resolvedTopWidget = widget.topWidgetBuilder!(
+                  context,
+                  animatedCelsius,
+                  tempState,
+                );
+              } else if (widget.topWidget != null) {
+                resolvedTopWidget = widget.topWidget;
+              } else if (widget.topIcon != null) {
+                resolvedTopWidget = widget.topIcon;
+              } else {
+                resolvedTopWidget = _buildDefaultTopBadge(isDark, scaleFactor);
+              }
+            }
+
+            // Optional Humidity Widget Slot (outside bottom of thermometer)
+            Widget? resolvedHumidityWidget;
+            final isHumidityEnabled =
+                widget.showHumidity ?? (widget.humidity != null);
+            if (isHumidityEnabled &&
+                widget.humidity != null &&
+                widget.humidityPosition != ThermometerHumidityPosition.none) {
+              final humVal = widget.humidity!.clamp(0.0, 100.0);
+              final humState = widget.humidityThresholds.getState(humVal);
+
+              if (widget.humidityWidgetBuilder != null) {
+                resolvedHumidityWidget = widget.humidityWidgetBuilder!(
+                  context,
+                  humVal,
+                  humState,
+                );
+              } else if (widget.humidityPosition ==
+                  ThermometerHumidityPosition.bottomPill) {
+                resolvedHumidityWidget =
+                    _buildDefaultHumidityPill(humVal, isDark, scaleFactor);
+              } else if (widget.humidityPosition ==
+                  ThermometerHumidityPosition.sideDial) {
+                resolvedHumidityWidget = HygrometerWidget(
+                  humidity: humVal,
+                  size: (56.0 * scaleFactor).clamp(42.0, 80.0),
+                );
+              }
+            }
+
+            // Calculate precise pixel positions for top and humidity widgets based on configurable spacing
+            final tubeTopY = effectiveH * 0.09;
+            final bulbBottomY = effectiveH * 0.84 + (effectiveW * 0.14 * 1.25);
+
+            return SizedBox(
+              width: effectiveW,
+              height: effectiveH,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onVerticalDragStart: (details) {
+                  if (widget.interactive) {
+                    HapticFeedback.selectionClick();
+                    widget.onDragStart?.call();
+                    _handleInteraction(
+                        details.localPosition, Size(effectiveW, effectiveH));
+                  }
+                },
+                onVerticalDragUpdate: (details) {
+                  if (widget.interactive) {
+                    _handleInteraction(
+                        details.localPosition, Size(effectiveW, effectiveH));
+                  }
+                },
+                onVerticalDragEnd: (_) => widget.onDragEnd?.call(),
+                onTapDown: (details) {
+                  if (widget.interactive) {
+                    HapticFeedback.lightImpact();
+                    _handleInteraction(
+                        details.localPosition, Size(effectiveW, effectiveH));
+                  }
+                },
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    CustomPaint(
+                      size: Size(effectiveW, effectiveH),
+                      painter: _RealisticThermometerPainter(
+                        celsius: animatedCelsius,
+                        fahrenheit: currentFahrenheit,
+                        minCelsius: widget.minCelsius,
+                        maxCelsius: widget.maxCelsius,
+                        minFahrenheit: widget.minFahrenheit,
+                        maxFahrenheit: widget.maxFahrenheit,
+                        showFahrenheit: widget.showFahrenheit,
+                        showCelsius: widget.showCelsius,
+                        showMinorLabels: widget.showMinorLabels,
+                        celsiusMajorStep: widget.celsiusMajorStep,
+                        celsiusMediumStep: widget.celsiusMediumStep,
+                        celsiusMinorStep: widget.celsiusMinorStep,
+                        fahrenheitMajorStep: widget.fahrenheitMajorStep,
+                        fluidTheme: resolvedFluidTheme,
+                        readoutStyle: widget.readoutStyle,
+                        customFluidColor: widget.customFluidColor,
+                        colors: resolvedColors,
+                        celsiusUnitLabel: widget.celsiusUnitLabel,
+                        fahrenheitUnitLabel: widget.fahrenheitUnitLabel,
+                        valueFormatter: widget.valueFormatter,
+                        isDark: isDark,
+                        scaleFactor: scaleFactor,
+                        isDangerActive: _isDangerActive,
+                        dangerPulseFactor: _alertPulseAnimation.value,
+                        showAlertVisualPulse: widget.showAlertVisualPulse,
+                      ),
+                    ),
+
+                    // Top Widget positioned outside top of stem with configurable spacing
+                    if (resolvedTopWidget != null)
+                      Positioned(
+                        top: (tubeTopY -
+                                widget.topWidgetSpacing -
+                                34 * scaleFactor)
+                            .clamp(-60.0, effectiveH),
+                        left: 0,
+                        right: 0,
+                        child: Align(
+                          alignment: Alignment(stemAlignmentX, 0),
+                          child: resolvedTopWidget,
                         ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
 
-          // ─── Center Prominent Active Tick (100% clarity) ───
-          Expanded(
-            flex: 3,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Container(
-                  width: 14,
-                  height: 3.0,
-                  decoration: BoxDecoration(
-                    color: primary,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+                    // Humidity Widget positioned outside bottom of bulb with configurable spacing
+                    if (resolvedHumidityWidget != null)
+                      widget.humidityPosition ==
+                              ThermometerHumidityPosition.sideDial
+                          ? Align(
+                              alignment: Alignment(
+                                  widget.showCelsius ? -0.85 : 0.85, 0.4),
+                              child: resolvedHumidityWidget,
+                            )
+                          : Positioned(
+                              top: bulbBottomY + widget.humiditySpacing,
+                              left: 0,
+                              right: 0,
+                              child: Align(
+                                alignment: Alignment(stemAlignmentX, 0),
+                                child: resolvedHumidityWidget,
+                              ),
+                            ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '${celsius.toStringAsFixed(1)}${unit ?? ''}',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        letterSpacing: 0.3,
-                        height: 1.1,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ─── Bottom Faded Tick (60% faded) ───
-          Expanded(
-            flex: 4,
-            child: Opacity(
-              opacity: 0.40, // 60% faded
-              child: Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 1.5,
-                    color: isDark ? Colors.white70 : Colors.black54,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        '${(celsius - 1).toStringAsFixed(0)}°',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.white70 : Colors.black54,
-                          height: 1.1,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
               ),
-            ),
-          ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
   }
-}
-
-/// A standalone 100% photorealistic circular 3D Hygrometer / Humidity Gauge widget.
-///
-/// Features:
-/// - Radial glowing liquid arc representing Relative Humidity (0% - 100% RH)
-/// - 3D glass lens bezel with specular reflections and ambient drop shadow
-/// - 100% customizable colors and state text strings
-class HygrometerWidget extends StatelessWidget {
-  final double humidity;
-  final double size;
-  final ThermometerHumidityThresholds thresholds;
-  final String? label;
-  final String unitLabel;
-  final String? dryLabel;
-  final String? comfortableLabel;
-  final String? humidLabel;
-  final Color? backgroundColor;
-  final Color? borderColor;
-  final Color? textColor;
-  final Color? iconColor;
-  final Color? arcColor;
-  final bool showStatusBadge;
-
-  const HygrometerWidget({
-    super.key,
-    required this.humidity,
-    this.size = 90,
-    this.thresholds = const ThermometerHumidityThresholds(),
-    this.label,
-    this.unitLabel = '%',
-    this.dryLabel,
-    this.comfortableLabel,
-    this.humidLabel,
-    this.backgroundColor,
-    this.borderColor,
-    this.textColor,
-    this.iconColor,
-    this.arcColor,
-    this.showStatusBadge = true,
-  });
 
   @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final clampedHumidity = humidity.clamp(0.0, 100.0);
-    final state = thresholds.getState(clampedHumidity);
+  void didUpdateWidget(ThermometerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final targetCelsius = _resolveInitialCelsius();
+    if ((targetCelsius - _currentCelsius).abs() > 0.05) {
+      _animValue = Tween<double>(
+        begin: _currentCelsius,
+        end: targetCelsius,
+      ).animate(CurvedAnimation(
+        parent: _animController,
+        curve: Curves.easeOutCubic,
+      ));
+      _animController.forward(from: 0.0);
+      _currentCelsius = targetCelsius;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _checkDangerAlert(targetCelsius);
+      }
+    });
+  }
 
-    final (defaultStateColor, defaultStateLabel) = switch (state) {
+  @override
+  void dispose() {
+    _animController.dispose();
+    _alertPulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _currentCelsius = _resolveInitialCelsius();
+
+    _animController = AnimationController(
+      vsync: this,
+      duration: widget.animationDuration,
+    );
+
+    _animValue = Tween<double>(
+      begin: _currentCelsius,
+      end: _currentCelsius,
+    ).animate(CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _alertPulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _alertPulseAnimation = Tween<double>(begin: 0.2, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _alertPulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _checkDangerAlert(_currentCelsius);
+      }
+    });
+  }
+
+  Widget _buildDefaultHumidityPill(
+      double humidity, bool isDark, double scaleFactor) {
+    final state = widget.humidityThresholds.getState(humidity);
+    final (stateColor, stateLabel) = switch (state) {
       ThermometerHumidityState.dry => (
           const Color(0xFFFF9800),
-          dryLabel ?? 'جاف'
+          widget.dryLabel ?? 'جاف'
         ),
       ThermometerHumidityState.comfortable => (
           const Color(0xFF00E676),
-          comfortableLabel ?? 'مثالي'
+          widget.comfortableLabel ?? 'مثالي'
         ),
       ThermometerHumidityState.humid => (
           const Color(0xFF00B0FF),
-          humidLabel ?? 'رطب'
+          widget.humidLabel ?? 'رطب'
         ),
     };
 
-    final effectiveBg =
-        backgroundColor ?? (isDark ? const Color(0xFF1B202A) : Colors.white);
-    final effectiveBorder = borderColor ??
-        (isDark ? const Color(0xFF333D4F) : const Color(0xFFCBD5E1));
-    final effectiveText =
-        textColor ?? (isDark ? Colors.white : const Color(0xFF0F172A));
-    final effectiveIcon = iconColor ?? defaultStateColor;
-    final effectiveArc = arcColor ?? defaultStateColor;
+    final bgColor = widget.colors?.humidityBackground ??
+        (isDark ? const Color(0xFF1E2430) : Colors.white);
+    final borderColor =
+        widget.colors?.humidityBorder ?? stateColor.withValues(alpha: 0.55);
+    final textColor = widget.colors?.humidityText ??
+        (isDark ? Colors.white : const Color(0xFF0F172A));
+    final iconColor = widget.colors?.humidityIcon ?? const Color(0xFF00B0FF);
 
     return Container(
-      width: size,
-      height: size,
+      padding: EdgeInsets.symmetric(
+        horizontal: (10.0 * scaleFactor).clamp(8.0, 16.0),
+        vertical: (5.0 * scaleFactor).clamp(4.0, 10.0),
+      ),
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: effectiveBg,
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16 * scaleFactor),
         border: Border.all(
-          color: effectiveBorder,
-          width: 1.5,
+          color: borderColor,
+          width: 1.4 * scaleFactor,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
+            blurRadius: 8 * scaleFactor,
+            offset: Offset(0, 3 * scaleFactor),
           ),
         ],
       ),
-      child: Stack(
-        alignment: Alignment.center,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Radial Progress Arc Painter
-          CustomPaint(
-            size: Size(size, size),
-            painter: _HygrometerArcPainter(
-              progress: clampedHumidity / 100.0,
-              accentColor: effectiveArc,
-              isDark: isDark,
+          Icon(
+            Icons.water_drop_rounded,
+            color: iconColor,
+            size: (15.0 * scaleFactor).clamp(11.0, 22.0),
+          ),
+          SizedBox(width: 4 * scaleFactor),
+          Text(
+            '${humidity.toStringAsFixed(0)}${widget.humidityUnitLabel}',
+            style: TextStyle(
+              fontSize: (11.5 * scaleFactor).clamp(8.5, 16.0),
+              fontWeight: FontWeight.w800,
+              color: textColor,
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
-
-          // Center Info (Scales cleanly within available size)
-          Padding(
-            padding: EdgeInsets.all(size * 0.12),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.water_drop_rounded,
-                    color: effectiveIcon,
-                    size: (size * 0.22).clamp(12.0, 24.0),
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    '${clampedHumidity.toStringAsFixed(0)}$unitLabel',
-                    style: TextStyle(
-                      fontSize: (size * 0.22).clamp(10.0, 20.0),
-                      fontWeight: FontWeight.w800,
-                      color: effectiveText,
-                      letterSpacing: -0.2,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                  if (showStatusBadge && defaultStateLabel.isNotEmpty) ...[
-                    const SizedBox(height: 1),
-                    Text(
-                      defaultStateLabel,
-                      style: TextStyle(
-                        fontSize: (size * 0.12).clamp(8.0, 11.0),
-                        fontWeight: FontWeight.bold,
-                        color: defaultStateColor,
-                      ),
-                    ),
-                  ],
-                ],
+          if (stateLabel.isNotEmpty) ...[
+            SizedBox(width: 5 * scaleFactor),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: 5 * scaleFactor,
+                vertical: 1.5 * scaleFactor,
+              ),
+              decoration: BoxDecoration(
+                color: stateColor.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(8 * scaleFactor),
+              ),
+              child: Text(
+                stateLabel,
+                style: TextStyle(
+                  fontSize: (9.0 * scaleFactor).clamp(7.0, 13.0),
+                  fontWeight: FontWeight.bold,
+                  color: stateColor,
+                ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
-}
 
-class _HygrometerArcPainter extends CustomPainter {
-  final double progress;
-  final Color accentColor;
-  final bool isDark;
+  Widget _buildDefaultTopBadge(bool isDark, double scaleFactor) {
+    final badgeColor = isDark ? const Color(0xFF282C35) : Colors.white;
+    final borderColor =
+        isDark ? const Color(0xFF4A5160) : const Color(0xFFD0D7DE);
+    final badgeSize = (36.0 * scaleFactor).clamp(20.0, 52.0);
+    final iconSize = (20.0 * scaleFactor).clamp(12.0, 30.0);
 
-  _HygrometerArcPainter({
-    required this.progress,
-    required this.accentColor,
-    required this.isDark,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width * 0.42;
-    const strokeWidth = 3.5;
-
-    // Track Background
-    final trackPaint = Paint()
-      ..color = (isDark ? const Color(0xFF2C3545) : const Color(0xFFE2E8F0))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-
-    // Arc starts from -220 degrees to +40 degrees (260 degree sweep)
-    const startAngle = math.pi * 0.75;
-    const sweepTotal = math.pi * 1.5;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      startAngle,
-      sweepTotal,
-      false,
-      trackPaint,
-    );
-
-    // Active Progress Arc
-    final activePaint = Paint()
-      ..shader = SweepGradient(
-        startAngle: startAngle,
-        endAngle: startAngle + sweepTotal,
-        colors: [
-          accentColor.withValues(alpha: 0.5),
-          accentColor,
+    return Container(
+      width: badgeSize,
+      height: badgeSize,
+      decoration: BoxDecoration(
+        color: badgeColor,
+        shape: BoxShape.circle,
+        border: Border.all(color: borderColor, width: 1.5 * scaleFactor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.15),
+            blurRadius: 8 * scaleFactor,
+            offset: Offset(0, 3 * scaleFactor),
+          ),
+          if (!isDark)
+            BoxShadow(
+              color: const Color(0x22FFFFFF),
+              blurRadius: 4 * scaleFactor,
+              offset: Offset(0, -1 * scaleFactor),
+            ),
         ],
-      ).createShader(Rect.fromCircle(center: center, radius: radius))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth + 0.8
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      startAngle,
-      sweepTotal * progress,
-      false,
-      activePaint,
+      ),
+      child: Center(
+        child: Icon(
+          Icons.wb_sunny_rounded,
+          color: const Color(0xFFFFA000),
+          size: iconSize,
+        ),
+      ),
     );
   }
 
-  @override
-  bool shouldRepaint(covariant _HygrometerArcPainter old) =>
-      old.progress != progress ||
-      old.accentColor != accentColor ||
-      old.isDark != isDark;
+  void _checkDangerAlert(double celsius) {
+    final isMaxCritical = widget.criticalMaxCelsius != null &&
+        celsius >= widget.criticalMaxCelsius!;
+    final isMinCritical = widget.criticalMinCelsius != null &&
+        celsius <= widget.criticalMinCelsius!;
+    final isCritical = isMaxCritical || isMinCritical;
+
+    if (isCritical) {
+      if (!_isDangerActive) {
+        _isDangerActive = true;
+        _alertPulseController.repeat(reverse: true);
+      }
+
+      // Throttle sound/vibration so it doesn't spam on continuous sensor streams (at most every 700ms)
+      final now = DateTime.now();
+      if (_lastAlertTime == null ||
+          now.difference(_lastAlertTime!).inMilliseconds > 700) {
+        _lastAlertTime = now;
+
+        if (widget.enableAlertVibration) {
+          HapticFeedback.heavyImpact();
+          HapticFeedback.vibrate();
+        }
+        if (widget.enableAlertSound) {
+          SystemSound.play(SystemSoundType.alert);
+        }
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            widget.onAlertTriggered?.call(celsius, isMaxCritical);
+            widget.customAlertSoundPlayer?.call();
+          }
+        });
+      }
+    } else {
+      if (_isDangerActive) {
+        _isDangerActive = false;
+        _alertPulseController.stop();
+        _alertPulseController.reset();
+      }
+    }
+  }
+
+  void _handleInteraction(Offset localPosition, Size size) {
+    if (!widget.interactive && widget.onChanged == null) return;
+
+    final h = size.height;
+    final tubeTop = h * 0.09;
+    final tubeBottom = h * 0.84;
+    final span = tubeBottom - tubeTop;
+
+    // Invert Y: top is maxCelsius, bottom is minCelsius
+    final clampedY = localPosition.dy.clamp(tubeTop, tubeBottom);
+    final progress = (tubeBottom - clampedY) / span; // 0.0 (min) to 1.0 (max)
+    final newCelsius =
+        widget.minCelsius + progress * (widget.maxCelsius - widget.minCelsius);
+
+    setState(() {
+      _currentCelsius = newCelsius;
+    });
+
+    _checkDangerAlert(newCelsius);
+    widget.onChanged?.call(newCelsius);
+  }
+
+  double _resolveInitialCelsius() {
+    if (widget.celsius != null) {
+      return widget.celsius!.clamp(widget.minCelsius, widget.maxCelsius);
+    }
+    if (widget.fahrenheit != null) {
+      return ((widget.fahrenheit! - 32) * 5 / 9)
+          .clamp(widget.minCelsius, widget.maxCelsius);
+    }
+    return 32.0;
+  }
 }
