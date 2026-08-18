@@ -16,10 +16,11 @@ import 'package:flutter/material.dart';
 ///
 
 class DataPreviewCard extends StatelessWidget {
-  final String title;
-
+  final Widget? title;
+  final String? titleText;
   final String? value;
-  final String? lottieTitle;
+  final Widget? lottieTitle;
+  final String? lottieTitleText;
   final Widget? lottieWidget;
   final Color? backgroundColor;
   final TextStyle? titleStyle;
@@ -41,9 +42,13 @@ class DataPreviewCard extends StatelessWidget {
   final bool showDescription;
   final Widget? descriptionWidget;
   final Widget? leftWidget;
+  final double? height;
+  final double? width;
+  final bool? isShowWidgetTitle;
+  final bool? isShowWidgetLottieTitle;
   const DataPreviewCard({
     super.key,
-    required this.title,
+    this.title,
     this.value,
     this.lottieTitle,
     this.lottieWidget,
@@ -67,6 +72,12 @@ class DataPreviewCard extends StatelessWidget {
     this.showDescription = true,
     this.descriptionWidget,
     this.leftWidget,
+    this.height,
+    this.width,
+    this.titleText,
+    this.isShowWidgetTitle,
+    this.lottieTitleText,
+    this.isShowWidgetLottieTitle = true,
   });
 
   @override
@@ -75,6 +86,8 @@ class DataPreviewCard extends StatelessWidget {
     final defaultBackgroundColor = backgroundColor ?? theme.cardColor;
 
     return Container(
+      height: height,
+      width: width,
       padding: padding,
       decoration: BoxDecoration(
         color: defaultBackgroundColor,
@@ -107,14 +120,17 @@ class DataPreviewCard extends StatelessWidget {
                 else if (showTitle) ...[
                   Row(
                     children: [
-                      Text(
-                        title,
-                        style: titleStyle ??
-                            theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.onSurface,
+                      if (isShowWidgetTitle != null &&
+                          isShowWidgetTitle == true)
+                        title ??
+                            Text(
+                              titleText ?? "",
+                              style: titleStyle ??
+                                  theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: theme.colorScheme.onSurface,
+                                  ),
                             ),
-                      ),
                       if (status != null) ...[
                         const SizedBox(width: 8),
                         Container(
@@ -204,21 +220,21 @@ class DataPreviewCard extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (lottieTitle != null) ...[
-                    Text(
-                      lottieTitle!,
-                      style: lottieTitleStyle ??
-                          theme.textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w500,
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
-                          ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                  ],
+                  isShowWidgetLottieTitle == true
+                      ? Text(
+                          lottieTitleText!,
+                          style: lottieTitleStyle ??
+                              theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: theme.colorScheme.onSurface
+                                    .withValues(alpha: 0.7),
+                              ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      : lottieTitle ?? const SizedBox.shrink(),
+                  const SizedBox(height: 8),
                   SizedBox(
                     height: 60,
                     width: 60,

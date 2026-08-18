@@ -13,40 +13,44 @@ class DataPreviewCardPage extends StatelessWidget {
         children: [
           _section(context, 'Basic Data Preview Card', children: [
             ds.DataPreviewCard(
-              title: 'Total Revenue',
+              titleText: 'Total Revenue',
+              isShowWidgetTitle: false,
               value: '\$124,500',
               valueLabel: 'Current',
-              lottieTitle: 'Growth',
+              lottieTitleText: 'Growth',
               lottieWidget: _buildMockLottie(Icons.trending_up),
             ),
           ]),
           _section(context, 'Card with Status', children: [
             ds.DataPreviewCard(
-              title: 'Server Status',
+              titleText: 'Server Status',
+              isShowWidgetTitle: false,
               value: 'Operational',
               valueLabel: 'Status',
               status: 'Online',
               statusColor: Colors.green,
-              lottieTitle: 'Health',
+              lottieTitleText: 'Health',
               lottieWidget: _buildMockLottie(Icons.check_circle),
             ),
           ]),
           _section(context, 'Card with Description', children: [
             ds.DataPreviewCard(
-              title: 'Storage Usage',
+              titleText: 'Storage Usage',
+              isShowWidgetTitle: false,
               value: '78%',
               valueLabel: 'Used',
               status: 'Warning',
               statusColor: Colors.orange,
               description:
                   'Your storage is almost full. Consider upgrading your plan.',
-              lottieTitle: 'Space',
+              lottieTitleText: 'Space',
               lottieWidget: _buildMockLottie(Icons.storage),
             ),
           ]),
           _section(context, 'Card with Custom Title Widget', children: [
             ds.DataPreviewCard(
-              title: 'Custom Title Widget',
+              titleText: 'Custom Title Widget',
+              isShowWidgetTitle: false,
               value: 'Active',
               valueLabel: 'Status',
               titleWidget: const Row(
@@ -63,13 +67,14 @@ class DataPreviewCardPage extends StatelessWidget {
                   ),
                 ],
               ),
-              lottieTitle: 'Health',
+              lottieTitleText: 'Health',
               lottieWidget: _buildMockLottie(Icons.health_and_safety),
             ),
           ]),
           _section(context, 'Card with Custom Description Widget', children: [
             ds.DataPreviewCard(
-              title: 'Storage Usage',
+              titleText: 'Storage Usage',
+              isShowWidgetTitle: false,
               value: '78%',
               valueLabel: 'Used',
               status: 'Warning',
@@ -87,23 +92,25 @@ class DataPreviewCardPage extends StatelessWidget {
                   ),
                 ],
               ),
-              lottieTitle: 'Space',
+              lottieTitleText: 'Space',
               lottieWidget: _buildMockLottie(Icons.storage),
             ),
           ]),
           _section(context, 'Card Without Title', children: [
             ds.DataPreviewCard(
-              title: 'Hidden Title',
+              titleText: 'Hidden Title',
+              isShowWidgetTitle: false,
               value: '95°F',
               valueLabel: 'Temperature',
               showTitle: false,
-              lottieTitle: 'Hot',
+              lottieTitleText: 'Hot',
               lottieWidget: _buildMockLottie(Icons.thermostat),
             ),
           ]),
           _section(context, 'Card with Custom Value Widget', children: [
             ds.DataPreviewCard(
-              title: 'Network Speed',
+              titleText: 'Network Speed',
+              isShowWidgetTitle: false,
               value: '1.2 Gbps',
               valueLabel: 'Current',
               valueWidget: Row(
@@ -132,51 +139,55 @@ class DataPreviewCardPage extends StatelessWidget {
                   ),
                 ],
               ),
-              lottieTitle: 'Speed',
+              lottieTitleText: 'Speed',
               lottieWidget: _buildMockLottie(Icons.network_check),
             ),
           ]),
           _section(context, 'Card Without Value', children: [
             ds.DataPreviewCard(
-              title: 'Status Only',
+              titleText: 'Status Only',
+              isShowWidgetTitle: false,
               value: 'N/A',
               valueLabel: 'Status',
               showValue: false,
               status: 'Processing',
               statusColor: Colors.orange,
-              lottieTitle: 'Working',
+              lottieTitleText: 'Working',
               lottieWidget: _buildMockLottie(Icons.refresh),
             ),
           ]),
           _section(context, 'Card Without Description', children: [
             ds.DataPreviewCard(
-              title: 'Temperature',
+              titleText: 'Temperature',
+              isShowWidgetTitle: false,
               value: '72°F',
               valueLabel: 'Current',
               showDescription: false,
-              lottieTitle: 'Comfort',
+              lottieTitleText: 'Comfort',
               lottieWidget: _buildMockLottie(Icons.thermostat),
             ),
           ]),
           _section(context, 'Card with Status and Description', children: [
             ds.DataPreviewCard(
-              title: 'API Requests',
+              titleText: 'API Requests',
+              isShowWidgetTitle: false,
               value: '98.5%',
               valueLabel: 'Success Rate',
               status: 'Excellent',
               statusColor: Colors.green,
               description:
                   'All systems are performing optimally with high availability.',
-              lottieTitle: 'Performance',
+              lottieTitleText: 'Performance',
               lottieWidget: _buildMockLottie(Icons.speed),
             ),
           ]),
           _section(context, 'Card with Custom Styling', children: [
             ds.DataPreviewCard(
-              title: 'Active Users',
+              titleText: 'Active Users',
+              isShowWidgetTitle: false,
               value: '8,432',
               valueLabel: 'Today',
-              lottieTitle: 'Online',
+              lottieTitleText: 'Online',
               lottieWidget: _buildMockLottie(Icons.people),
               backgroundColor: Colors.blue.withValues(alpha: 0.1),
               titleStyle: const TextStyle(
@@ -200,31 +211,35 @@ class DataPreviewCardPage extends StatelessWidget {
               crossAxisSpacing: 12,
               children: [
                 ds.DataPreviewCard(
-                  title: 'Orders',
+                  titleText: 'Orders',
+                  isShowWidgetTitle: false,
                   value: '1,234',
                   valueLabel: 'Total',
-                  lottieTitle: 'Today',
+                  lottieTitleText: 'Today',
                   lottieWidget: _buildMockLottie(Icons.shopping_cart),
                 ),
                 ds.DataPreviewCard(
-                  title: 'Conversion',
+                  titleText: 'Conversion',
+                  isShowWidgetTitle: false,
                   value: '3.2%',
                   valueLabel: 'Rate',
-                  lottieTitle: 'Trend',
+                  lottieTitleText: 'Trend',
                   lottieWidget: _buildMockLottie(Icons.show_chart),
                 ),
                 ds.DataPreviewCard(
-                  title: 'Bounce Rate',
+                  titleText: 'Bounce Rate',
+                  isShowWidgetTitle: false,
                   value: '42%',
                   valueLabel: 'Current',
-                  lottieTitle: 'Status',
+                  lottieTitleText: 'Status',
                   lottieWidget: _buildMockLottie(Icons.analytics),
                 ),
                 ds.DataPreviewCard(
-                  title: 'Session Time',
+                  titleText: 'Session Time',
+                  isShowWidgetTitle: false,
                   value: '4m 32s',
                   valueLabel: 'Average',
-                  lottieTitle: 'Duration',
+                  lottieTitleText: 'Duration',
                   lottieWidget: _buildMockLottie(Icons.access_time),
                 ),
               ],
@@ -312,7 +327,8 @@ class DataPreviewCardPage extends StatelessWidget {
           ]),
           _section(context, 'Card Without Lottie', children: [
             ds.DataPreviewCard(
-              title: 'Server Status',
+              titleText: 'Server Status',
+              isShowWidgetTitle: false,
               value: 'Operational',
               valueLabel: 'Status',
               backgroundColor: Colors.green.withValues(alpha: 0.1),
@@ -329,10 +345,11 @@ class DataPreviewCardPage extends StatelessWidget {
           ]),
           _section(context, 'With Custom Border Radius', children: [
             const ds.DataPreviewCard(
-              title: 'Temperature',
+              titleText: 'Temperature',
+              isShowWidgetTitle: false,
               value: '24°C',
               valueLabel: 'Room',
-              lottieTitle: 'Climate',
+              lottieTitleText: 'Climate',
               lottieWidget: ds.ThermometerWidget(
                 celsius: 24,
                 width: 80,
@@ -353,7 +370,8 @@ class DataPreviewCardPage extends StatelessWidget {
           ]),
           _section(context, 'Card with Leading Widget', children: [
             ds.DataPreviewCard(
-              title: 'Network Speed',
+              titleText: 'Network Speed',
+              isShowWidgetTitle: false,
               value: '1.2 Gbps',
               valueLabel: 'Current',
               status: 'Connected',
@@ -369,16 +387,17 @@ class DataPreviewCardPage extends StatelessWidget {
                   size: 28,
                 ),
               ),
-              lottieTitle: 'Speed',
+              lottieTitleText: 'Speed',
               lottieWidget: _buildMockLottie(Icons.speed),
             ),
           ]),
           _section(context, 'Financial Data Example', children: [
             ds.DataPreviewCard(
-              title: 'Portfolio Value',
+              titleText: 'Portfolio Value',
+              isShowWidgetTitle: false,
               value: '\$1.2M',
               valueLabel: 'Total',
-              lottieTitle: '+12.5%',
+              lottieTitleText: '+12.5%',
               lottieWidget: _buildMockLottie(Icons.account_balance),
               backgroundColor: Colors.green.withValues(alpha: 0.08),
               titleStyle: const TextStyle(
