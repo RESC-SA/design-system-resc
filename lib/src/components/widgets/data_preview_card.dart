@@ -41,6 +41,8 @@ class DataPreviewCard extends StatelessWidget {
   final bool showDescription;
   final Widget? descriptionWidget;
   final Widget? leftWidget;
+  final double? height;
+  final double? width;
   const DataPreviewCard({
     super.key,
     required this.title,
@@ -67,6 +69,8 @@ class DataPreviewCard extends StatelessWidget {
     this.showDescription = true,
     this.descriptionWidget,
     this.leftWidget,
+    this.height,
+    this.width,
   });
 
   @override
@@ -75,6 +79,8 @@ class DataPreviewCard extends StatelessWidget {
     final defaultBackgroundColor = backgroundColor ?? theme.cardColor;
 
     return Container(
+      height: height,
+      width: width,
       padding: padding,
       decoration: BoxDecoration(
         color: defaultBackgroundColor,

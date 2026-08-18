@@ -2434,22 +2434,10 @@ class _ThermometerWidgetState extends State<ThermometerWidget>
       double celsius, bool isDark, double scaleFactor) {
     final state = widget.thresholds.getState(celsius);
     final (stateColor, stateLabel) = switch (state) {
-      ThermometerTemperatureState.cool => (
-          const Color(0xFF00B0FF),
-          'بارد'
-        ),
-      ThermometerTemperatureState.normal => (
-          const Color(0xFF00E676),
-          'مثالي'
-        ),
-      ThermometerTemperatureState.warm => (
-          const Color(0xFFFFB300),
-          'دافئ'
-        ),
-      ThermometerTemperatureState.hot => (
-          const Color(0xFFFF5252),
-          'حار'
-        ),
+      ThermometerTemperatureState.cool => (const Color(0xFF00B0FF), 'بارد'),
+      ThermometerTemperatureState.normal => (const Color(0xFF00E676), 'مثالي'),
+      ThermometerTemperatureState.warm => (const Color(0xFFFFB300), 'دافئ'),
+      ThermometerTemperatureState.hot => (const Color(0xFFFF5252), 'حار'),
     };
 
     final showF = widget.showFahrenheit && !widget.showCelsius;
