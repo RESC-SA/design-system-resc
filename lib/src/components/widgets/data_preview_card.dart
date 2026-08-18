@@ -16,8 +16,8 @@ import 'package:flutter/material.dart';
 ///
 
 class DataPreviewCard extends StatelessWidget {
-  final String title;
-
+  final Widget? title;
+  final String? titleText;
   final String? value;
   final String? lottieTitle;
   final Widget? lottieWidget;
@@ -43,9 +43,10 @@ class DataPreviewCard extends StatelessWidget {
   final Widget? leftWidget;
   final double? height;
   final double? width;
+  final bool? isShowWidgetTitle;
   const DataPreviewCard({
     super.key,
-    required this.title,
+    this.title,
     this.value,
     this.lottieTitle,
     this.lottieWidget,
@@ -71,6 +72,8 @@ class DataPreviewCard extends StatelessWidget {
     this.leftWidget,
     this.height,
     this.width,
+    this.titleText,
+    this.isShowWidgetTitle,
   });
 
   @override
@@ -113,14 +116,16 @@ class DataPreviewCard extends StatelessWidget {
                 else if (showTitle) ...[
                   Row(
                     children: [
-                      Text(
-                        title,
-                        style: titleStyle ??
-                            theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.onSurface,
-                            ),
-                      ),
+                    if (isShowWidgetTitle != null && isShowWidgetTitle == true)
+                      title ??
+                          Text(
+                           titleText ?? "",
+                            style: titleStyle ??
+                                theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                          ),
                       if (status != null) ...[
                         const SizedBox(width: 8),
                         Container(
