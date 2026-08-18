@@ -19,7 +19,8 @@ class DataPreviewCard extends StatelessWidget {
   final Widget? title;
   final String? titleText;
   final String? value;
-  final String? lottieTitle;
+  final Widget? lottieTitle;
+  final String? lottieTitleText;
   final Widget? lottieWidget;
   final Color? backgroundColor;
   final TextStyle? titleStyle;
@@ -44,6 +45,7 @@ class DataPreviewCard extends StatelessWidget {
   final double? height;
   final double? width;
   final bool? isShowWidgetTitle;
+  final bool? isShowWidgetLottieTitle;
   const DataPreviewCard({
     super.key,
     this.title,
@@ -74,6 +76,8 @@ class DataPreviewCard extends StatelessWidget {
     this.width,
     this.titleText,
     this.isShowWidgetTitle,
+    this.lottieTitleText,
+    this.isShowWidgetLottieTitle = true,
   });
 
   @override
@@ -116,16 +120,17 @@ class DataPreviewCard extends StatelessWidget {
                 else if (showTitle) ...[
                   Row(
                     children: [
-                    if (isShowWidgetTitle != null && isShowWidgetTitle == true)
-                      title ??
-                          Text(
-                           titleText ?? "",
-                            style: titleStyle ??
-                                theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                          ),
+                      if (isShowWidgetTitle != null &&
+                          isShowWidgetTitle == true)
+                        title ??
+                            Text(
+                              titleText ?? "",
+                              style: titleStyle ??
+                                  theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                            ),
                       if (status != null) ...[
                         const SizedBox(width: 8),
                         Container(
@@ -215,21 +220,21 @@ class DataPreviewCard extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (lottieTitle != null) ...[
-                    Text(
-                      lottieTitle!,
-                      style: lottieTitleStyle ??
-                          theme.textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w500,
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
-                          ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                  ],
+                  isShowWidgetLottieTitle == true
+                      ? Text(
+                          lottieTitleText!,
+                          style: lottieTitleStyle ??
+                              theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: theme.colorScheme.onSurface
+                                    .withValues(alpha: 0.7),
+                              ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      : lottieTitle ?? const SizedBox.shrink(),
+                  const SizedBox(height: 8),
                   SizedBox(
                     height: 60,
                     width: 60,
