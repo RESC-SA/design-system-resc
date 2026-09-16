@@ -112,6 +112,10 @@ class LiquidBottomNavBar extends StatefulWidget {
   final Color? borderColor;
   final List<Color>? borderGradientColors;
   final double? gapBetweenIconAndLabel;
+  final double iconBackgroundWidth;
+  final double iconBackgroundHeight;
+  final bool iconBackgroundIsCircular;
+  final bool showMainBlob;
   const LiquidBottomNavBar({
     super.key,
     required this.currentIndex,
@@ -178,6 +182,10 @@ class LiquidBottomNavBar extends StatefulWidget {
     this.borderColor,
     this.borderGradientColors,
     this.gapBetweenIconAndLabel,
+    this.iconBackgroundWidth = 40,
+    this.iconBackgroundHeight = 40,
+    this.iconBackgroundIsCircular = true,
+    this.showMainBlob = true,
   })  : assert(items.length >= 2, 'items must contain at least 2 entries'),
         assert(onTap != null || onChanged != null,
             'Provide onTap or onChanged callback');
@@ -266,6 +274,10 @@ class _IOSLiquidPainter extends CustomPainter {
   final List<Color>? borderGradientColors;
   final bool buildDefaultDragHandles;
   final double iconSize;
+  final double iconBackgroundWidth;
+  final double iconBackgroundHeight;
+  final bool iconBackgroundIsCircular;
+  final bool showMainBlob;
   _IOSLiquidPainter({
     required this.position,
     required this.itemWidth,
@@ -303,6 +315,10 @@ class _IOSLiquidPainter extends CustomPainter {
     this.borderGradientColors,
     required this.buildDefaultDragHandles,
     required this.iconSize,
+    this.iconBackgroundWidth = 40,
+    this.iconBackgroundHeight = 40,
+    this.iconBackgroundIsCircular = true,
+    this.showMainBlob = true,
   });
 
   @override
@@ -343,19 +359,22 @@ class _IOSLiquidPainter extends CustomPainter {
         RRect.fromRectAndRadius(rect, Radius.circular(currentHeight / 2));
 
     // Create a smaller rounded background around the icon
-    final iconBackgroundSize =
-        iconSize * 2.0; // Make it slightly larger than the icon
     // Position the icon background slightly above center to account for label offset
     final iconBackgroundCenterY = (centerY + dy) - centerYOffset;
     final iconBackgroundRect = Rect.fromCenter(
       center: Offset(centerX + dx, iconBackgroundCenterY),
-      width: iconBackgroundSize,
-      height: iconBackgroundSize,
+      width: iconBackgroundWidth,
+      height: iconBackgroundHeight,
     );
-    final iconBackgroundRRect = RRect.fromRectAndRadius(
-      iconBackgroundRect,
-      Radius.circular(iconBackgroundSize / 2),
-    );
+    final iconBackgroundRRect = iconBackgroundIsCircular
+        ? RRect.fromRectAndRadius(
+            iconBackgroundRect,
+            Radius.circular(iconBackgroundWidth / 2),
+          )
+        : RRect.fromRectAndRadius(
+            iconBackgroundRect,
+            Radius.circular(8),
+          );
 
     Paint liquidPaint;
     if (colorMode == LiquidColorMode.single) {
@@ -376,44 +395,47 @@ class _IOSLiquidPainter extends CustomPainter {
         ).createShader(rect);
     }
 
-    canvas.drawRRect(
-      rrect.shift(Offset(0, shadowOffset)),
-      Paint()
-        ..color = primaryColor.withValues(alpha: shadowAlpha)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, shadowBlurSigma),
-    );
+    // Draw main blob only if enabled
+    if (showMainBlob) {
+      canvas.drawRRect(
+        rrect.shift(Offset(0, shadowOffset)),
+        Paint()
+          ..color = primaryColor.withValues(alpha: shadowAlpha)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, shadowBlurSigma),
+      );
 
-    canvas.drawRRect(rrect, liquidPaint);
+      canvas.drawRRect(rrect, liquidPaint);
+
+      if (showBorder) {
+        Paint borderPaint;
+        if (borderGradientColors != null && borderGradientColors!.length > 1) {
+          borderPaint = Paint()
+            ..shader = LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: borderGradientColors!,
+            ).createShader(rect)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = borderWidth;
+        } else {
+          final finalBorderColor = borderColor ?? surfaceColor;
+          borderPaint = Paint()
+            ..color = finalBorderColor.withValues(alpha: borderAlpha)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = borderWidth;
+        }
+        canvas.drawRRect(rrect, borderPaint);
+      }
+    }
 
     // Draw icon background
     final iconBackgroundPaint = Paint()
       ..color = primaryColor.withValues(alpha: 0.15);
     canvas.drawRRect(iconBackgroundRRect, iconBackgroundPaint);
-
-    if (showBorder) {
-      Paint borderPaint;
-      if (borderGradientColors != null && borderGradientColors!.length > 1) {
-        borderPaint = Paint()
-          ..shader = LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: borderGradientColors!,
-          ).createShader(rect)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = borderWidth;
-      } else {
-        final finalBorderColor = borderColor ?? surfaceColor;
-        borderPaint = Paint()
-          ..color = finalBorderColor.withValues(alpha: borderAlpha)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = borderWidth;
-      }
-      canvas.drawRRect(rrect, borderPaint);
-    }
   }
 
   @override
-  bool shouldRepaint(covariant _IOSLiquidPainter oldDelegate) {
+  bool shouldRepaint(_IOSLiquidPainter oldDelegate) {
     return oldDelegate.position != position ||
         oldDelegate.itemWidth != itemWidth ||
         oldDelegate.velocity != velocity ||
@@ -448,7 +470,11 @@ class _IOSLiquidPainter extends CustomPainter {
         oldDelegate.customGradientColors != customGradientColors ||
         oldDelegate.borderColor != borderColor ||
         oldDelegate.borderGradientColors != borderGradientColors ||
-        oldDelegate.iconSize != iconSize;
+        oldDelegate.iconSize != iconSize ||
+        oldDelegate.iconBackgroundWidth != iconBackgroundWidth ||
+        oldDelegate.iconBackgroundHeight != iconBackgroundHeight ||
+        oldDelegate.iconBackgroundIsCircular != iconBackgroundIsCircular ||
+        oldDelegate.showMainBlob != showMainBlob;
   }
 }
 
@@ -750,7 +776,14 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                                           widget.borderGradientColors,
                                       buildDefaultDragHandles:
                                           widget.buildDefaultDragHandles,
-                                      iconSize: widget.iconSize),
+                                      iconSize: widget.iconSize,
+                                      iconBackgroundWidth:
+                                          widget.iconBackgroundWidth,
+                                      iconBackgroundHeight:
+                                          widget.iconBackgroundHeight,
+                                      iconBackgroundIsCircular:
+                                          widget.iconBackgroundIsCircular,
+                                      showMainBlob: widget.showMainBlob),
                                 );
                               },
                             ),
