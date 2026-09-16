@@ -265,6 +265,7 @@ class _IOSLiquidPainter extends CustomPainter {
   final Color? borderColor;
   final List<Color>? borderGradientColors;
   final bool buildDefaultDragHandles;
+  final double iconSize;
   _IOSLiquidPainter({
     required this.position,
     required this.itemWidth,
@@ -301,6 +302,7 @@ class _IOSLiquidPainter extends CustomPainter {
     this.borderColor,
     this.borderGradientColors,
     required this.buildDefaultDragHandles,
+    required this.iconSize,
   });
 
   @override
@@ -340,6 +342,21 @@ class _IOSLiquidPainter extends CustomPainter {
     final rrect =
         RRect.fromRectAndRadius(rect, Radius.circular(currentHeight / 2));
 
+    // Create a smaller rounded background around the icon
+    final iconBackgroundSize =
+        iconSize * 2.0; // Make it slightly larger than the icon
+    // Position the icon background slightly above center to account for label offset
+    final iconBackgroundCenterY = (centerY + dy) - centerYOffset;
+    final iconBackgroundRect = Rect.fromCenter(
+      center: Offset(centerX + dx, iconBackgroundCenterY),
+      width: iconBackgroundSize,
+      height: iconBackgroundSize,
+    );
+    final iconBackgroundRRect = RRect.fromRectAndRadius(
+      iconBackgroundRect,
+      Radius.circular(iconBackgroundSize / 2),
+    );
+
     Paint liquidPaint;
     if (colorMode == LiquidColorMode.single) {
       liquidPaint = Paint()
@@ -367,6 +384,11 @@ class _IOSLiquidPainter extends CustomPainter {
     );
 
     canvas.drawRRect(rrect, liquidPaint);
+
+    // Draw icon background
+    final iconBackgroundPaint = Paint()
+      ..color = primaryColor.withValues(alpha: 0.15);
+    canvas.drawRRect(iconBackgroundRRect, iconBackgroundPaint);
 
     if (showBorder) {
       Paint borderPaint;
@@ -425,7 +447,8 @@ class _IOSLiquidPainter extends CustomPainter {
         oldDelegate.colorMode != colorMode ||
         oldDelegate.customGradientColors != customGradientColors ||
         oldDelegate.borderColor != borderColor ||
-        oldDelegate.borderGradientColors != borderGradientColors;
+        oldDelegate.borderGradientColors != borderGradientColors ||
+        oldDelegate.iconSize != iconSize;
   }
 }
 
@@ -726,7 +749,8 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                                       borderGradientColors:
                                           widget.borderGradientColors,
                                       buildDefaultDragHandles:
-                                          widget.buildDefaultDragHandles),
+                                          widget.buildDefaultDragHandles,
+                                      iconSize: widget.iconSize),
                                 );
                               },
                             ),
@@ -901,35 +925,23 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
     required LiquidNavItem item,
     final double? gapBetweenIconAndLabel = 2,
   }) {
-    // Wrap icon in a rounded container with background
-    final iconWithBackground = Container(
-      decoration: BoxDecoration(
-        color: isSelected
-            ? (item.colorSelected ?? Colors.blue).withValues(alpha: 0.15)
-            : (item.colorUnselected ?? Colors.grey).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.all(8),
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          Center(child: iconWidget),
-          if (_showBadge(index))
-            Positioned(
-              right: -6,
-              top: -6,
-              child: _buildBadge(index),
-            ),
-        ],
-      ),
-    );
-
     if (isVertical) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          iconWithBackground,
+          Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              iconWidget,
+              if (_showBadge(index))
+                Positioned(
+                  right: -6,
+                  top: -6,
+                  child: _buildBadge(index),
+                ),
+            ],
+          ),
           if (gapBetweenIconAndLabel != null)
             SizedBox(width: gapBetweenIconAndLabel),
           if (style.showLabel && (item.label?.isNotEmpty ?? false))
@@ -950,7 +962,19 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        iconWithBackground,
+        Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Center(child: iconWidget),
+            if (_showBadge(index))
+              Positioned(
+                right: -6,
+                top: -6,
+                child: _buildBadge(index),
+              ),
+          ],
+        ),
         if (gapBetweenIconAndLabel != null)
           SizedBox(height: gapBetweenIconAndLabel),
         if (style.showLabel && (item.label?.isNotEmpty ?? false))
