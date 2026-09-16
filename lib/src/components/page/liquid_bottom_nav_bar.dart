@@ -907,6 +907,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
         children: [
           Stack(
             clipBehavior: Clip.none,
+            alignment: Alignment.center,
             children: [
               iconWidget,
               if (_showBadge(index))
@@ -939,6 +940,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
       children: [
         Stack(
           clipBehavior: Clip.none,
+          alignment: Alignment.center,
           children: [
             Center(child: iconWidget),
             if (_showBadge(index))
