@@ -116,6 +116,7 @@ class LiquidBottomNavBar extends StatefulWidget {
   final double iconBackgroundHeight;
   final bool iconBackgroundIsCircular;
   final bool showMainBlob;
+  final bool isShow990;
   const LiquidBottomNavBar({
     super.key,
     required this.currentIndex,
@@ -186,6 +187,7 @@ class LiquidBottomNavBar extends StatefulWidget {
     this.iconBackgroundHeight = 40,
     this.iconBackgroundIsCircular = true,
     this.showMainBlob = true,
+    this.isShow990 = false,
   })  : assert(items.length >= 2, 'items must contain at least 2 entries'),
         assert(onTap != null || onChanged != null,
             'Provide onTap or onChanged callback');
@@ -278,6 +280,7 @@ class _IOSLiquidPainter extends CustomPainter {
   final double iconBackgroundHeight;
   final bool iconBackgroundIsCircular;
   final bool showMainBlob;
+  final bool isShow990;
   _IOSLiquidPainter({
     required this.position,
     required this.itemWidth,
@@ -319,6 +322,7 @@ class _IOSLiquidPainter extends CustomPainter {
     this.iconBackgroundHeight = 40,
     this.iconBackgroundIsCircular = true,
     this.showMainBlob = true,
+    this.isShow990 = false,
   });
 
   @override
@@ -474,7 +478,8 @@ class _IOSLiquidPainter extends CustomPainter {
         oldDelegate.iconBackgroundWidth != iconBackgroundWidth ||
         oldDelegate.iconBackgroundHeight != iconBackgroundHeight ||
         oldDelegate.iconBackgroundIsCircular != iconBackgroundIsCircular ||
-        oldDelegate.showMainBlob != showMainBlob;
+        oldDelegate.showMainBlob != showMainBlob ||
+        oldDelegate.isShow990 != isShow990;
   }
 }
 
@@ -494,13 +499,11 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
   bool _isDragging = false;
   bool _isReordering = false;
   double _velocity = 0;
-  bool isShow990 = false;
   double? _snapTarget;
   Animation<double>? _currentAnimation;
   VoidCallback? _snapListener;
   // Animated visual property values
   double _animatedShadowOffset = 3;
-  double? _animatedGapBetweenIconAndLabel;
   double _animatedShadowAlpha = 0.15;
   double _animatedShadowBlurSigma = 10;
   double _animatedBorderAlpha = 0.8;
@@ -685,7 +688,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                         clipBehavior: Clip.none,
                         alignment: Alignment.center,
                         children: [
-                          isShow990 == true
+                          widget.isShow990 == true
                               ? Positioned.fill(
                                   child: ClipRRect(
                                     borderRadius: style.borderRadius!,
@@ -786,7 +789,8 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                                           widget.iconBackgroundHeight,
                                       iconBackgroundIsCircular:
                                           widget.iconBackgroundIsCircular,
-                                      showMainBlob: widget.showMainBlob),
+                                      showMainBlob: widget.showMainBlob,
+                                      isShow990: widget.isShow990),
                                 );
                               },
                             ),
