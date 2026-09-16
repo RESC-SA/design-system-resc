@@ -111,6 +111,7 @@ class LiquidBottomNavBar extends StatefulWidget {
   final List<Color>? customGradientColors;
   final Color? borderColor;
   final List<Color>? borderGradientColors;
+  final double? gapBetweenIconAndLabel;
   const LiquidBottomNavBar({
     super.key,
     required this.currentIndex,
@@ -176,6 +177,7 @@ class LiquidBottomNavBar extends StatefulWidget {
     this.customGradientColors,
     this.borderColor,
     this.borderGradientColors,
+    this.gapBetweenIconAndLabel,
   })  : assert(items.length >= 2, 'items must contain at least 2 entries'),
         assert(onTap != null || onChanged != null,
             'Provide onTap or onChanged callback');
@@ -449,7 +451,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
   VoidCallback? _snapListener;
   // Animated visual property values
   double _animatedShadowOffset = 3;
-
+  double? _animatedGapBetweenIconAndLabel;
   double _animatedShadowAlpha = 0.15;
   double _animatedShadowBlurSigma = 10;
   double _animatedBorderAlpha = 0.8;
@@ -736,6 +738,8 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                               safeIndex: safeIndex,
                               style: style,
                               cellSize: cellSize,
+                              gapBetweenIconAndLabel:
+                                  widget.gapBetweenIconAndLabel,
                             ),
                           ),
                         ],
@@ -913,7 +917,8 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                 ),
             ],
           ),
-          if (gapBetweenIconAndLabel != null) SizedBox(width: gapBetweenIconAndLabel),
+          if (gapBetweenIconAndLabel != null)
+            SizedBox(width: gapBetweenIconAndLabel),
           if (style.showLabel && (item.label?.isNotEmpty ?? false))
             Padding(
               padding: const EdgeInsets.only(left: 4),
@@ -944,7 +949,8 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
               ),
           ],
         ),
-        if (gapBetweenIconAndLabel != null) SizedBox(height: gapBetweenIconAndLabel),
+        if (gapBetweenIconAndLabel != null)
+          SizedBox(height: gapBetweenIconAndLabel),
         if (style.showLabel && (item.label?.isNotEmpty ?? false))
           Padding(
             padding: const EdgeInsets.only(top: 2),
@@ -965,6 +971,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
     required int safeIndex,
     required LiquidNavStyle style,
     required double cellSize,
+    required double? gapBetweenIconAndLabel,
   }) {
     final overflow = widget.items.length > _maxItemDisplayed;
     final pad = overflow ? cellSize / 2 : 0.0;
@@ -1033,6 +1040,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
             index: index,
             style: style,
             item: item,
+            gapBetweenIconAndLabel: widget.gapBetweenIconAndLabel,
           ),
         ),
       );
