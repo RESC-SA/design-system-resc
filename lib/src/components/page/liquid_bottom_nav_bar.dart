@@ -494,7 +494,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
   bool _isDragging = false;
   bool _isReordering = false;
   double _velocity = 0;
-
+  bool isShow990 = false;
   double? _snapTarget;
   Animation<double>? _currentAnimation;
   VoidCallback? _snapListener;
@@ -685,18 +685,21 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                         clipBehavior: Clip.none,
                         alignment: Alignment.center,
                         children: [
-                          Positioned.fill(
-                            child: ClipRRect(
-                              borderRadius: style.borderRadius!,
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(
-                                  sigmaX: style.blurSigma ?? 0,
-                                  sigmaY: style.blurSigma ?? 0,
-                                ),
-                                child: ColoredBox(color: style.containerColor!),
-                              ),
-                            ),
-                          ),
+                          isShow990 == true
+                              ? Positioned.fill(
+                                  child: ClipRRect(
+                                    borderRadius: style.borderRadius!,
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(
+                                        sigmaX: style.blurSigma ?? 0,
+                                        sigmaY: style.blurSigma ?? 0,
+                                      ),
+                                      child: ColoredBox(
+                                          color: style.containerColor!),
+                                    ),
+                                  ),
+                                )
+                              : SizedBox.shrink(),
                           Positioned.fill(
                             child: AnimatedBuilder(
                               animation: Listenable.merge([
