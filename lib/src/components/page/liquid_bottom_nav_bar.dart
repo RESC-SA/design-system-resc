@@ -933,7 +933,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
         Stack(
           clipBehavior: Clip.none,
           children: [
-            iconWidget,
+            Center(child: iconWidget),
             if (_showBadge(index))
               Positioned(
                 right: -6,
