@@ -674,57 +674,57 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                                     style.showLabel ? (2.0 + 9.0) / 2 : 0.0;
                                 return CustomPaint(
                                   painter: _IOSLiquidPainter(
-                                    position: effectivePosition,
-                                    itemWidth: cellSize,
-                                    centerYOffset: iconOffset,
-                                    velocity: _isDragging ? _velocity : 0,
-                                    expansion: _expansionController.value,
-                                    wobble: wobbleVal,
-                                    dragWobble: _isDragging
-                                        ? _dragWobbleController.value
-                                        : 0,
-                                    horizontalInset: itemInset + listViewPad,
-                                    primaryColor: style.liquidColor!,
-                                    surfaceColor: style.containerColor!,
-                                    blobBaseWidthFactor:
-                                        widget.blobBaseWidthFactor,
-                                    blobExpandedWidthFactor:
-                                        widget.blobExpandedWidthFactor,
-                                    blobBaseHeight: widget.blobBaseHeight,
-                                    blobExpandedHeight:
-                                        widget.blobExpandedHeight,
-                                    blobStretchMultiplier:
-                                        widget.blobStretchMultiplier,
-                                    blobMaxStretch: widget.blobMaxStretch,
-                                    blobWobbleInfluenceOnWidth:
-                                        _animatedBlobWobbleInfluenceOnWidth,
-                                    blobWobbleInfluenceOnHeight:
-                                        _animatedBlobWobbleInfluenceOnHeight,
-                                    shadowOffset: _animatedShadowOffset,
-                                    shadowAlpha: _animatedShadowAlpha,
-                                    shadowBlurSigma: _animatedShadowBlurSigma,
-                                    borderAlpha: _animatedBorderAlpha,
-                                    borderWidth: _animatedBorderWidth,
-                                    gradientSurfaceAlpha:
-                                        _animatedGradientSurfaceAlpha,
-                                    gradientPrimaryAlpha1:
-                                        _animatedGradientPrimaryAlpha1,
-                                    gradientPrimaryAlpha2:
-                                        _animatedGradientPrimaryAlpha2,
-                                    dragWaveHeightMultiplier:
-                                        _animatedDragWaveHeightMultiplier,
-                                    dragWavePositionMultiplier:
-                                        _animatedDragWavePositionMultiplier,
-                                    showBorder: widget.showBorder,
-                                    isVertical: isVertical,
-                                    colorMode: widget.colorMode,
-                                    customGradientColors:
-                                        widget.customGradientColors,
-                                    borderColor: widget.borderColor,
-                                    borderGradientColors:
-                                        widget.borderGradientColors,
-                                        buildDefaultDragHandles: widget.buildDefaultDragHandles
-                                  ),
+                                      position: effectivePosition,
+                                      itemWidth: cellSize,
+                                      centerYOffset: iconOffset,
+                                      velocity: _isDragging ? _velocity : 0,
+                                      expansion: _expansionController.value,
+                                      wobble: wobbleVal,
+                                      dragWobble: _isDragging
+                                          ? _dragWobbleController.value
+                                          : 0,
+                                      horizontalInset: itemInset + listViewPad,
+                                      primaryColor: style.liquidColor!,
+                                      surfaceColor: style.containerColor!,
+                                      blobBaseWidthFactor:
+                                          widget.blobBaseWidthFactor,
+                                      blobExpandedWidthFactor:
+                                          widget.blobExpandedWidthFactor,
+                                      blobBaseHeight: widget.blobBaseHeight,
+                                      blobExpandedHeight:
+                                          widget.blobExpandedHeight,
+                                      blobStretchMultiplier:
+                                          widget.blobStretchMultiplier,
+                                      blobMaxStretch: widget.blobMaxStretch,
+                                      blobWobbleInfluenceOnWidth:
+                                          _animatedBlobWobbleInfluenceOnWidth,
+                                      blobWobbleInfluenceOnHeight:
+                                          _animatedBlobWobbleInfluenceOnHeight,
+                                      shadowOffset: _animatedShadowOffset,
+                                      shadowAlpha: _animatedShadowAlpha,
+                                      shadowBlurSigma: _animatedShadowBlurSigma,
+                                      borderAlpha: _animatedBorderAlpha,
+                                      borderWidth: _animatedBorderWidth,
+                                      gradientSurfaceAlpha:
+                                          _animatedGradientSurfaceAlpha,
+                                      gradientPrimaryAlpha1:
+                                          _animatedGradientPrimaryAlpha1,
+                                      gradientPrimaryAlpha2:
+                                          _animatedGradientPrimaryAlpha2,
+                                      dragWaveHeightMultiplier:
+                                          _animatedDragWaveHeightMultiplier,
+                                      dragWavePositionMultiplier:
+                                          _animatedDragWavePositionMultiplier,
+                                      showBorder: widget.showBorder,
+                                      isVertical: isVertical,
+                                      colorMode: widget.colorMode,
+                                      customGradientColors:
+                                          widget.customGradientColors,
+                                      borderColor: widget.borderColor,
+                                      borderGradientColors:
+                                          widget.borderGradientColors,
+                                      buildDefaultDragHandles:
+                                          widget.buildDefaultDragHandles),
                                 );
                               },
                             ),
@@ -895,6 +895,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
     required int index,
     required LiquidNavStyle style,
     required LiquidNavItem item,
+    final double? gapBetweenIconAndLabel = 2,
   }) {
     if (isVertical) {
       return Row(
@@ -912,6 +913,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                 ),
             ],
           ),
+          if (gapBetweenIconAndLabel != null) SizedBox(width: gapBetweenIconAndLabel),
           if (style.showLabel && (item.label?.isNotEmpty ?? false))
             Padding(
               padding: const EdgeInsets.only(left: 4),
@@ -942,6 +944,7 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
               ),
           ],
         ),
+        if (gapBetweenIconAndLabel != null) SizedBox(height: gapBetweenIconAndLabel),
         if (style.showLabel && (item.label?.isNotEmpty ?? false))
           Padding(
             padding: const EdgeInsets.only(top: 2),
