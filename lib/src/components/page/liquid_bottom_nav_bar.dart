@@ -117,6 +117,10 @@ class LiquidBottomNavBar extends StatefulWidget {
   final bool iconBackgroundIsCircular;
   final bool showMainBlob;
   final bool isShow990;
+  final bool iconBackgroundAnimated;
+  final double iconBackgroundVelocity;
+  final double iconBackgroundWobble;
+  final double iconBackgroundExpansion;
   const LiquidBottomNavBar({
     super.key,
     required this.currentIndex,
@@ -188,6 +192,10 @@ class LiquidBottomNavBar extends StatefulWidget {
     this.iconBackgroundIsCircular = true,
     this.showMainBlob = true,
     this.isShow990 = false,
+    this.iconBackgroundAnimated = false,
+    this.iconBackgroundVelocity = 0,
+    this.iconBackgroundWobble = 0,
+    this.iconBackgroundExpansion = 0,
   })  : assert(items.length >= 2, 'items must contain at least 2 entries'),
         assert(onTap != null || onChanged != null,
             'Provide onTap or onChanged callback');
@@ -281,6 +289,10 @@ class _IOSLiquidPainter extends CustomPainter {
   final bool iconBackgroundIsCircular;
   final bool showMainBlob;
   final bool isShow990;
+  final bool iconBackgroundAnimated;
+  final double iconBackgroundVelocity;
+  final double iconBackgroundWobble;
+  final double iconBackgroundExpansion;
   _IOSLiquidPainter({
     required this.position,
     required this.itemWidth,
@@ -323,6 +335,10 @@ class _IOSLiquidPainter extends CustomPainter {
     this.iconBackgroundIsCircular = true,
     this.showMainBlob = true,
     this.isShow990 = false,
+    this.iconBackgroundAnimated = false,
+    this.iconBackgroundVelocity = 0,
+    this.iconBackgroundWobble = 0,
+    this.iconBackgroundExpansion = 0,
   });
 
   @override
@@ -365,15 +381,46 @@ class _IOSLiquidPainter extends CustomPainter {
     // Create a smaller rounded background around the icon
     // Position the icon background slightly above center to account for label offset
     final iconBackgroundCenterY = (centerY + dy) - centerYOffset;
+
+    // Apply animation effects to icon background if enabled
+    double animatedIconWidth = iconBackgroundWidth;
+    double animatedIconHeight = iconBackgroundHeight;
+    double iconDx = dx;
+    double iconDy = dy;
+
+    if (iconBackgroundAnimated) {
+      // Apply expansion
+      final expandedIconWidth =
+          iconBackgroundWidth * (1 + iconBackgroundExpansion);
+      final expandedIconHeight =
+          iconBackgroundHeight * (1 + iconBackgroundExpansion);
+      animatedIconWidth =
+          lerpDouble(iconBackgroundWidth, expandedIconWidth, expansion) ??
+              iconBackgroundWidth;
+      animatedIconHeight =
+          lerpDouble(iconBackgroundHeight, expandedIconHeight, expansion) ??
+              iconBackgroundHeight;
+
+      // Apply wobble
+      animatedIconWidth += iconBackgroundWobble * 2;
+      animatedIconHeight -= iconBackgroundWobble;
+
+      // Apply velocity-based movement
+      final iconVelocityDx = isVertical ? 0.0 : iconBackgroundVelocity * 2;
+      final iconVelocityDy = isVertical ? iconBackgroundVelocity * 2 : 0.0;
+      iconDx += iconVelocityDx;
+      iconDy += iconVelocityDy;
+    }
+
     final iconBackgroundRect = Rect.fromCenter(
-      center: Offset(centerX + dx, iconBackgroundCenterY),
-      width: iconBackgroundWidth,
-      height: iconBackgroundHeight,
+      center: Offset(centerX + iconDx, iconBackgroundCenterY + iconDy),
+      width: animatedIconWidth,
+      height: animatedIconHeight,
     );
     final iconBackgroundRRect = iconBackgroundIsCircular
         ? RRect.fromRectAndRadius(
             iconBackgroundRect,
-            Radius.circular(iconBackgroundWidth / 2),
+            Radius.circular(animatedIconWidth / 2),
           )
         : RRect.fromRectAndRadius(
             iconBackgroundRect,
@@ -479,7 +526,11 @@ class _IOSLiquidPainter extends CustomPainter {
         oldDelegate.iconBackgroundHeight != iconBackgroundHeight ||
         oldDelegate.iconBackgroundIsCircular != iconBackgroundIsCircular ||
         oldDelegate.showMainBlob != showMainBlob ||
-        oldDelegate.isShow990 != isShow990;
+        oldDelegate.isShow990 != isShow990 ||
+        oldDelegate.iconBackgroundAnimated != iconBackgroundAnimated ||
+        oldDelegate.iconBackgroundVelocity != iconBackgroundVelocity ||
+        oldDelegate.iconBackgroundWobble != iconBackgroundWobble ||
+        oldDelegate.iconBackgroundExpansion != iconBackgroundExpansion;
   }
 }
 
@@ -790,7 +841,21 @@ class _LiquidBottomNavBarState extends State<LiquidBottomNavBar>
                                       iconBackgroundIsCircular:
                                           widget.iconBackgroundIsCircular,
                                       showMainBlob: widget.showMainBlob,
-                                      isShow990: widget.isShow990),
+                                      isShow990: widget.isShow990,
+                                      iconBackgroundAnimated:
+                                          widget.iconBackgroundAnimated,
+                                      iconBackgroundWobble:
+                                          widget.iconBackgroundAnimated
+                                              ? wobbleVal
+                                              : widget.iconBackgroundWobble,
+                                      iconBackgroundExpansion:
+                                          widget.iconBackgroundAnimated
+                                              ? _expansionController.value
+                                              : widget.iconBackgroundExpansion,
+                                      iconBackgroundVelocity:
+                                          widget.iconBackgroundAnimated
+                                              ? (_isDragging ? _velocity : 0)
+                                              : widget.iconBackgroundVelocity),
                                 );
                               },
                             ),
